@@ -15,7 +15,7 @@ func (s *Service) forkWatcher() {
 		return
 	}
 
-	slotTicker := slots.NewSlotTicker(s.genesisTime, params.BeaconConfig().SecondsPerSlot)
+	slotTicker := slots.NewSlotTicker(s.genesisTime, slots.SlotStart)
 	var scheduleEntry params.NetworkScheduleEntry
 	for {
 		select {

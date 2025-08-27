@@ -89,8 +89,7 @@ func (s *Service) spawnProcessAttestationsRoutine() {
 			return
 		}
 
-		reorgInterval := time.Second*time.Duration(params.BeaconConfig().SecondsPerSlot) - reorgLateBlockCountAttestations
-		ticker := slots.NewSlotTickerWithIntervals(s.genesisTime, []time.Duration{0, reorgInterval})
+		ticker := slots.NewSlotTickerWithIntervals(s.genesisTime, slots.BlockchainReorg)
 		for {
 			select {
 			case <-s.ctx.Done():

@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/OffchainLabs/prysm/v6/config/features"
-	"github.com/OffchainLabs/prysm/v6/config/params"
 	"github.com/OffchainLabs/prysm/v6/monitoring/tracing/trace"
 	ethpb "github.com/OffchainLabs/prysm/v6/proto/prysm/v1alpha1"
 	"github.com/OffchainLabs/prysm/v6/proto/prysm/v1alpha1/attestation"
@@ -19,19 +18,7 @@ import (
 // This prepares fork choice attestations by running batchForkChoiceAtts
 // every prepareForkChoiceAttsPeriod.
 func (s *Service) prepareForkChoiceAtts() {
-	intervals := features.Get().AggregateIntervals
-	slotDuration := time.Duration(params.BeaconConfig().SecondsPerSlot) * time.Second
-	// Adjust intervals for networks with a lower slot duration (Hive, e2e, etc)
-	for {
-		if intervals[len(intervals)-1] >= slotDuration {
-			for i, offset := range intervals {
-				intervals[i] = offset / 2
-			}
-		} else {
-			break
-		}
-	}
-	ticker := slots.NewSlotTickerWithIntervals(s.genesisTime, intervals[:])
+	ticker := slots.NewSlotTickerWithIntervals(s.genesisTime, slots.AttestationAggregation)
 	for {
 		select {
 		case slotInterval := <-ticker.C():

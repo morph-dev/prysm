@@ -509,7 +509,7 @@ func (s *Service) subscribeWithParameters(p subscribeParameters) {
 			}
 		}()
 
-		slotTicker := slots.NewSlotTicker(s.cfg.clock.GenesisTime(), params.BeaconConfig().SecondsPerSlot)
+		slotTicker := slots.NewSlotTicker(s.cfg.clock.GenesisTime(), slots.SlotStart)
 		defer slotTicker.Done()
 
 		for {

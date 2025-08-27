@@ -30,7 +30,7 @@ const (
 	// Electra Fork Epoch for mainnet config
 	mainnetElectraForkEpoch = 364032 // May 7, 2025, 10:05:11 UTC
 	// Fulu Fork Epoch for mainnet config
-	mainnetFuluForkEpoch = math.MaxUint64 // Far future / to be defined
+	mainnetFuluForkEpoch = 446157 // May 7, 2026, 10:05:11 UTC
 )
 
 var mainnetNetworkConfig = &NetworkConfig{

@@ -528,7 +528,7 @@ func TestDuration(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			end := c.start.Add(c.endDelta)
-			a := Duration(c.start, end)
+			a := At(c.start, end)
 			require.Equal(t, c.expected, a)
 		})
 	}
@@ -678,13 +678,13 @@ func TestToForkVersion(t *testing.T) {
 }
 
 func TestSlotTickerReplayBehaviour(t *testing.T) {
-	secondsPerslot := uint64(1)
-	st := NewSlotTicker(time.Unix(time.Now().Unix(), 0), secondsPerslot) // 1-second period
-	const ticks = 5
+	secondsPerslot := params.BeaconConfig().SecondsPerSlot
+	st := NewSlotTicker(time.Unix(time.Now().Unix(), 0), SlotStart)
+	const ticks = 2
 
-	ctx, cancel := context.WithTimeout(t.Context(), 6*time.Second) // make the timeout very close
+	ctx, cancel := context.WithTimeout(t.Context(), time.Duration(secondsPerslot*ticks+1)*time.Second) // make the timeout very close
 	defer cancel()
-	time.Sleep(time.Duration(ticks) * time.Second) // simulate slow consumer by delaying tick consumption
+	time.Sleep(time.Duration(secondsPerslot*ticks) * time.Second) // simulate slow consumer by delaying tick consumption
 	counter := 0
 	prevTime := time.Now()
 	for counter < ticks {
