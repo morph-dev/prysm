@@ -16,10 +16,9 @@ proto_library(
     name = "proto",
     srcs = [
         "beacon_chain.proto",
-        "chunk_access_list.proto",
+        "chunks.proto",
         "debug.proto",
         "eip_7251.proto",
-        "execution_chunk.proto",
         "finalized_block_root_container.proto",
         "health.proto",
         "node.proto",
@@ -203,6 +202,8 @@ ssz_gloas_objs = [
     "BeaconStateGloas",
     "SignedBeaconBlockContentsGloas",
     "SignedBeaconBlockGloas",
+    "ExecutionChunkSidecar",
+    "ChunkAccessListSidecar",
 ]
 
 ssz_gen_marshal(

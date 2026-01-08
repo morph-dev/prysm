@@ -1153,6 +1153,10 @@ message BeaconBlockBodyGloas {
   ];
 
   ethereum.engine.v1.ExecutionRequests execution_requests = 13;
+
+  // Gloas - EIP-8101
+  bytes chunk_headers_root = 14 [ (ethereum.eth.ext.ssz_size) = "32" ];
+  bytes chunk_access_lists_root = 15 [ (ethereum.eth.ext.ssz_size) = "32" ];
 }
 
 message BeaconBlockGloas {

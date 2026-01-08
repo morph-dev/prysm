@@ -10,7 +10,7 @@ import (
 )
 
 func (s *Service) chunkAccessListSubscriber(_ context.Context, msg proto.Message) error {
-	chunkAccessList, ok := msg.(*eth.ChunkAccessList)
+	chunkAccessList, ok := msg.(*eth.ChunkAccessListSidecar)
 	if !ok {
 		return fmt.Errorf("message was not type *eth.ChunkAccessList, type=%T", msg)
 	}
@@ -18,7 +18,8 @@ func (s *Service) chunkAccessListSubscriber(_ context.Context, msg proto.Message
 		return errors.New("nil chunk access list")
 	}
 
-	s.chunkAccessListCache.Add(chunkAccessList.Slot, chunkAccessList.ChunkIndex, chunkAccessList.AccountChanges)
+	// TODO: eip-8101
+	// s.chunkAccessListCache.Add(chunkAccessList.Slot, chunkAccessList.ChunkIndex, chunkAccessList.AccountChanges)
 
 	return nil
 }

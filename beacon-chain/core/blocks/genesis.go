@@ -218,8 +218,10 @@ func NewGenesisBlockForState(ctx context.Context, st state.BeaconState) (interfa
 						ExtraData:     make([]byte, 0),
 						BaseFeePerGas: make([]byte, 32),
 						BlockHash:     make([]byte, 32),
-						Transactions:  make([][]byte, 0),
-						Withdrawals:   make([]*enginev1.Withdrawal, 0),
+						// EIP-8101
+						TxHash:              make([]byte, 32),
+						WithdrawalsRoot:     make([]byte, 32),
+						BlockAccessListHash: make([]byte, 32),
 					},
 					BlsToExecutionChanges: make([]*ethpb.SignedBLSToExecutionChange, 0),
 					BlobKzgCommitments:    make([][]byte, 0),

@@ -319,6 +319,8 @@ type GetPayloadV6ResponseJson struct {
 	BlobsBundle           *BlobBundleV2JSON          `json:"blobsBundle"`
 	ShouldOverrideBuilder bool                       `json:"shouldOverrideBuilder"`
 	ExecutionRequests     []hexutil.Bytes            `json:"executionRequests"`
+	// EIP-8101
+	Chunks []*ExecutionChunkBundle `json:"chunks"`
 }
 
 // ExecutionPayloadBody represents the engine API ExecutionPayloadV1 or ExecutionPayloadV2 type.
@@ -366,8 +368,10 @@ type ExecutionPayloadGloasJSON struct {
 	BlobGasUsed   *hexutil.Uint64 `json:"blobGasUsed"`
 	ExcessBlobGas *hexutil.Uint64 `json:"excessBlobGas"`
 	BlockHash     *common.Hash    `json:"blockHash"`
-	Transactions  []hexutil.Bytes `json:"transactions"`
-	Withdrawals   []*Withdrawal   `json:"withdrawals"`
+	// EIP-8101
+	TxHash              *common.Hash `json:"txash"`
+	WithdrawalsRoot     *common.Hash `json:"withdrawalsRoot"`
+	BlockAccessListHash *common.Hash `json:"blockAccessListHash"`
 }
 
 // WithdrawalRequestV1 represents an execution engine WithdrawalRequestV1 value
@@ -941,10 +945,6 @@ func (e *ExecutionPayloadDeneb) MarshalJSON() ([]byte, error) {
 }
 
 func (e *ExecutionPayloadGloas) MarshalJSON() ([]byte, error) {
-	transactions := make([]hexutil.Bytes, len(e.Transactions))
-	for i, tx := range e.Transactions {
-		transactions[i] = tx
-	}
 	baseFee := new(big.Int).SetBytes(bytesutil.ReverseByteOrder(e.BaseFeePerGas))
 	baseFeeHex := hexutil.EncodeBig(baseFee)
 	pHash := common.BytesToHash(e.ParentHash)
@@ -958,31 +958,33 @@ func (e *ExecutionPayloadGloas) MarshalJSON() ([]byte, error) {
 	timeStamp := hexutil.Uint64(e.Timestamp)
 	recipient := common.BytesToAddress(e.FeeRecipient)
 	logsBloom := hexutil.Bytes(e.LogsBloom)
-	withdrawals := e.Withdrawals
-	if withdrawals == nil {
-		withdrawals = make([]*Withdrawal, 0)
-	}
 	blobGasUsed := hexutil.Uint64(e.BlobGasUsed)
 	excessBlobGas := hexutil.Uint64(e.ExcessBlobGas)
 
+	// EIP-8101
+	txHash := common.BytesToHash(e.TxHash)
+	withdrawalsRoot := common.BytesToHash(e.WithdrawalsRoot)
+	blockAccessListHash := common.BytesToHash(e.BlockAccessListHash)
+
 	return json.Marshal(ExecutionPayloadGloasJSON{
-		ParentHash:    &pHash,
-		FeeRecipient:  &recipient,
-		StateRoot:     &sRoot,
-		ReceiptsRoot:  &recRoot,
-		LogsBloom:     &logsBloom,
-		PrevRandao:    &prevRan,
-		BlockNumber:   &blockNum,
-		GasLimit:      &gasLimit,
-		GasUsed:       &gasUsed,
-		Timestamp:     &timeStamp,
-		ExtraData:     e.ExtraData,
-		BaseFeePerGas: baseFeeHex,
-		BlobGasUsed:   &blobGasUsed,
-		ExcessBlobGas: &excessBlobGas,
-		BlockHash:     &bHash,
-		Transactions:  transactions,
-		Withdrawals:   withdrawals,
+		ParentHash:          &pHash,
+		FeeRecipient:        &recipient,
+		StateRoot:           &sRoot,
+		ReceiptsRoot:        &recRoot,
+		LogsBloom:           &logsBloom,
+		PrevRandao:          &prevRan,
+		BlockNumber:         &blockNum,
+		GasLimit:            &gasLimit,
+		GasUsed:             &gasUsed,
+		Timestamp:           &timeStamp,
+		ExtraData:           e.ExtraData,
+		BaseFeePerGas:       baseFeeHex,
+		BlobGasUsed:         &blobGasUsed,
+		ExcessBlobGas:       &excessBlobGas,
+		BlockHash:           &bHash,
+		TxHash:              &txHash,
+		WithdrawalsRoot:     &withdrawalsRoot,
+		BlockAccessListHash: &blockAccessListHash,
 	})
 }
 
@@ -1513,9 +1515,6 @@ func (e *ExecutionBundleGloas) UnmarshalJSON(enc []byte) error {
 	if dec.ExecutionPayload.BlockHash == nil {
 		return errors.New("missing required field 'blockHash' for ExecutionPayload")
 	}
-	if dec.ExecutionPayload.Transactions == nil {
-		return errors.New("missing required field 'transactions' for ExecutionPayload")
-	}
 	if dec.ExecutionPayload.BlockNumber == nil {
 		return errors.New("missing required field 'blockNumber' for ExecutionPayload")
 	}
@@ -1533,6 +1532,15 @@ func (e *ExecutionBundleGloas) UnmarshalJSON(enc []byte) error {
 	}
 	if dec.ExecutionPayload.ExcessBlobGas == nil {
 		return errors.New("missing required field 'excessBlobGas' for ExecutionPayload")
+	}
+	if dec.ExecutionPayload.TxHash == nil {
+		return errors.New("missing required field 'txHash' for ExecutionPayload")
+	}
+	if dec.ExecutionPayload.WithdrawalsRoot == nil {
+		return errors.New("missing required field 'withdrawalsRoot' for ExecutionPayload")
+	}
+	if dec.ExecutionPayload.BlockAccessListHash == nil {
+		return errors.New("missing required field 'blockAccessListHash' for ExecutionPayload")
 	}
 
 	*e = ExecutionBundleGloas{Payload: &ExecutionPayloadGloas{}}
@@ -1558,15 +1566,10 @@ func (e *ExecutionBundleGloas) UnmarshalJSON(enc []byte) error {
 	e.Payload.BlobGasUsed = uint64(*dec.ExecutionPayload.BlobGasUsed)
 	e.Payload.BlockHash = dec.ExecutionPayload.BlockHash.Bytes()
 
-	txs := make([][]byte, len(dec.ExecutionPayload.Transactions))
-	for i, tx := range dec.ExecutionPayload.Transactions {
-		txs[i] = tx
-	}
-	e.Payload.Transactions = txs
-	if dec.ExecutionPayload.Withdrawals == nil {
-		dec.ExecutionPayload.Withdrawals = make([]*Withdrawal, 0)
-	}
-	e.Payload.Withdrawals = dec.ExecutionPayload.Withdrawals
+	// EIP-8101
+	e.Payload.TxHash = dec.ExecutionPayload.TxHash.Bytes()
+	e.Payload.WithdrawalsRoot = dec.ExecutionPayload.WithdrawalsRoot.Bytes()
+	e.Payload.BlockAccessListHash = dec.ExecutionPayload.BlockAccessListHash.Bytes()
 
 	v, err := hexutil.DecodeBig(dec.BlockValue)
 	if err != nil {
@@ -1609,6 +1612,8 @@ func (e *ExecutionBundleGloas) UnmarshalJSON(enc []byte) error {
 		reqs[i] = b
 	}
 	e.ExecutionRequests = reqs
+
+	e.Chunks = dec.Chunks
 
 	return nil
 }

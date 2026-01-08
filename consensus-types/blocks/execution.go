@@ -1350,22 +1350,22 @@ func (e executionPayloadGloas) BlockHash() []byte {
 
 // Transactions --
 func (e executionPayloadGloas) Transactions() ([][]byte, error) {
-	return e.p.Transactions, nil
+	return nil, consensus_types.ErrUnsupportedField
 }
 
 // TransactionsRoot --
 func (e executionPayloadGloas) TransactionsRoot() ([]byte, error) {
-	return nil, consensus_types.ErrUnsupportedField
+	return e.p.TxHash, nil
 }
 
 // Withdrawals --
 func (e executionPayloadGloas) Withdrawals() ([]*enginev1.Withdrawal, error) {
-	return e.p.Withdrawals, nil
+	return nil, consensus_types.ErrUnsupportedField
 }
 
 // WithdrawalsRoot --
 func (e executionPayloadGloas) WithdrawalsRoot() ([]byte, error) {
-	return nil, consensus_types.ErrUnsupportedField
+	return e.p.WithdrawalsRoot, nil
 }
 
 func (e executionPayloadGloas) BlobGasUsed() (uint64, error) {

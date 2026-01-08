@@ -106,15 +106,13 @@ message ExecutionPayloadGloas {
   bytes extra_data = 11 [ (ethereum.eth.ext.ssz_max) = "extra_data.size" ];
   bytes base_fee_per_gas = 12 [ (ethereum.eth.ext.ssz_size) = "32" ];
   bytes block_hash = 13 [ (ethereum.eth.ext.ssz_size) = "32" ];
-  repeated bytes transactions = 14 [
-    (ethereum.eth.ext.ssz_size) = "?,?",
-    (ethereum.eth.ext.ssz_max) = "1048576,1073741824"
-  ];
-  // MAX_WITHDRAWALS_PER_PAYLOAD
-  repeated Withdrawal withdrawals = 15
-  [ (ethereum.eth.ext.ssz_max) = "withdrawal.size" ];
   uint64 blob_gas_used = 16;
   uint64 excess_blob_gas = 17;
+
+  // EIP-8101 fields
+  bytes tx_hash = 18 [ (ethereum.eth.ext.ssz_size) = "32" ];
+  bytes withdrawals_root = 19 [ (ethereum.eth.ext.ssz_size) = "32" ];
+  bytes block_access_list_hash = 20 [ (ethereum.eth.ext.ssz_size) = "32" ];
 }
 
 message ExecutionPayloadHeaderGloas {
@@ -135,6 +133,7 @@ message ExecutionPayloadHeaderGloas {
   bytes withdrawals_root = 15 [ (ethereum.eth.ext.ssz_size) = "32" ];
   uint64 blob_gas_used = 16;
   uint64 excess_blob_gas = 17;
+  bytes block_access_list_hash = 20 [ (ethereum.eth.ext.ssz_size) = "32" ];
 }
 
 message ExecutionPayloadCapellaWithValue {

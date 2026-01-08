@@ -15,7 +15,7 @@ func (b *BeaconBlockBodyGloas) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the BeaconBlockBodyGloas object to a target array
 func (b *BeaconBlockBodyGloas) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int(396)
+	offset := int(460)
 
 	// Field (0) 'RandaoReveal'
 	if size := len(b.RandaoReveal); size != 96 {
@@ -94,6 +94,20 @@ func (b *BeaconBlockBodyGloas) MarshalSSZTo(buf []byte) (dst []byte, err error) 
 		b.ExecutionRequests = new(v1.ExecutionRequests)
 	}
 	offset += b.ExecutionRequests.SizeSSZ()
+
+	// Field (13) 'ChunkHeadersRoot'
+	if size := len(b.ChunkHeadersRoot); size != 32 {
+		err = ssz.ErrBytesLengthFn("--.ChunkHeadersRoot", size, 32)
+		return
+	}
+	dst = append(dst, b.ChunkHeadersRoot...)
+
+	// Field (14) 'ChunkAccessListsRoot'
+	if size := len(b.ChunkAccessListsRoot); size != 32 {
+		err = ssz.ErrBytesLengthFn("--.ChunkAccessListsRoot", size, 32)
+		return
+	}
+	dst = append(dst, b.ChunkAccessListsRoot...)
 
 	// Field (3) 'ProposerSlashings'
 	if size := len(b.ProposerSlashings); size > 16 {
@@ -205,7 +219,7 @@ func (b *BeaconBlockBodyGloas) MarshalSSZTo(buf []byte) (dst []byte, err error) 
 func (b *BeaconBlockBodyGloas) UnmarshalSSZ(buf []byte) error {
 	var err error
 	size := uint64(len(buf))
-	if size < 396 {
+	if size < 460 {
 		return ssz.ErrSize
 	}
 
@@ -237,7 +251,7 @@ func (b *BeaconBlockBodyGloas) UnmarshalSSZ(buf []byte) error {
 		return ssz.ErrOffset
 	}
 
-	if o3 != 396 {
+	if o3 != 460 {
 		return ssz.ErrInvalidVariableOffset
 	}
 
@@ -288,6 +302,18 @@ func (b *BeaconBlockBodyGloas) UnmarshalSSZ(buf []byte) error {
 	if o12 = ssz.ReadOffset(buf[392:396]); o12 > size || o11 > o12 {
 		return ssz.ErrOffset
 	}
+
+	// Field (13) 'ChunkHeadersRoot'
+	if cap(b.ChunkHeadersRoot) == 0 {
+		b.ChunkHeadersRoot = make([]byte, 0, len(buf[396:428]))
+	}
+	b.ChunkHeadersRoot = append(b.ChunkHeadersRoot, buf[396:428]...)
+
+	// Field (14) 'ChunkAccessListsRoot'
+	if cap(b.ChunkAccessListsRoot) == 0 {
+		b.ChunkAccessListsRoot = make([]byte, 0, len(buf[428:460]))
+	}
+	b.ChunkAccessListsRoot = append(b.ChunkAccessListsRoot, buf[428:460]...)
 
 	// Field (3) 'ProposerSlashings'
 	{
@@ -447,7 +473,7 @@ func (b *BeaconBlockBodyGloas) UnmarshalSSZ(buf []byte) error {
 
 // SizeSSZ returns the ssz encoded size in bytes for the BeaconBlockBodyGloas object
 func (b *BeaconBlockBodyGloas) SizeSSZ() (size int) {
-	size = 396
+	size = 460
 
 	// Field (3) 'ProposerSlashings'
 	size += len(b.ProposerSlashings) * 416
@@ -648,6 +674,20 @@ func (b *BeaconBlockBodyGloas) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 	if err = b.ExecutionRequests.HashTreeRootWith(hh); err != nil {
 		return
 	}
+
+	// Field (13) 'ChunkHeadersRoot'
+	if size := len(b.ChunkHeadersRoot); size != 32 {
+		err = ssz.ErrBytesLengthFn("--.ChunkHeadersRoot", size, 32)
+		return
+	}
+	hh.PutBytes(b.ChunkHeadersRoot)
+
+	// Field (14) 'ChunkAccessListsRoot'
+	if size := len(b.ChunkAccessListsRoot); size != 32 {
+		err = ssz.ErrBytesLengthFn("--.ChunkAccessListsRoot", size, 32)
+		return
+	}
+	hh.PutBytes(b.ChunkAccessListsRoot)
 
 	hh.Merkleize(indx)
 	return
@@ -2478,6 +2518,317 @@ func (b *BeaconStateGloas) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 			hh.AppendUint64(i)
 		}
 		hh.Merkleize(subIndx)
+	}
+
+	hh.Merkleize(indx)
+	return
+}
+
+// MarshalSSZ ssz marshals the ExecutionChunkSidecar object
+func (e *ExecutionChunkSidecar) MarshalSSZ() ([]byte, error) {
+	return ssz.MarshalSSZ(e)
+}
+
+// MarshalSSZTo ssz marshals the ExecutionChunkSidecar object to a target array
+func (e *ExecutionChunkSidecar) MarshalSSZTo(buf []byte) (dst []byte, err error) {
+	dst = buf
+	offset := int(468)
+
+	// Offset (0) 'Chunk'
+	dst = ssz.WriteOffset(dst, offset)
+	if e.Chunk == nil {
+		e.Chunk = new(v1.ExecutionChunk)
+	}
+	offset += e.Chunk.SizeSSZ()
+
+	// Field (1) 'InclusionProof'
+	if size := len(e.InclusionProof); size != 8 {
+		err = ssz.ErrVectorLengthFn("--.InclusionProof", size, 8)
+		return
+	}
+	for ii := 0; ii < 8; ii++ {
+		if size := len(e.InclusionProof[ii]); size != 32 {
+			err = ssz.ErrBytesLengthFn("--.InclusionProof[ii]", size, 32)
+			return
+		}
+		dst = append(dst, e.InclusionProof[ii]...)
+	}
+
+	// Field (2) 'SignedBlockHeader'
+	if e.SignedBlockHeader == nil {
+		e.SignedBlockHeader = new(SignedBeaconBlockHeader)
+	}
+	if dst, err = e.SignedBlockHeader.MarshalSSZTo(dst); err != nil {
+		return
+	}
+
+	// Field (0) 'Chunk'
+	if dst, err = e.Chunk.MarshalSSZTo(dst); err != nil {
+		return
+	}
+
+	return
+}
+
+// UnmarshalSSZ ssz unmarshals the ExecutionChunkSidecar object
+func (e *ExecutionChunkSidecar) UnmarshalSSZ(buf []byte) error {
+	var err error
+	size := uint64(len(buf))
+	if size < 468 {
+		return ssz.ErrSize
+	}
+
+	tail := buf
+	var o0 uint64
+
+	// Offset (0) 'Chunk'
+	if o0 = ssz.ReadOffset(buf[0:4]); o0 > size {
+		return ssz.ErrOffset
+	}
+
+	if o0 != 468 {
+		return ssz.ErrInvalidVariableOffset
+	}
+
+	// Field (1) 'InclusionProof'
+	e.InclusionProof = make([][]byte, 8)
+	for ii := 0; ii < 8; ii++ {
+		if cap(e.InclusionProof[ii]) == 0 {
+			e.InclusionProof[ii] = make([]byte, 0, len(buf[4:260][ii*32:(ii+1)*32]))
+		}
+		e.InclusionProof[ii] = append(e.InclusionProof[ii], buf[4:260][ii*32:(ii+1)*32]...)
+	}
+
+	// Field (2) 'SignedBlockHeader'
+	if e.SignedBlockHeader == nil {
+		e.SignedBlockHeader = new(SignedBeaconBlockHeader)
+	}
+	if err = e.SignedBlockHeader.UnmarshalSSZ(buf[260:468]); err != nil {
+		return err
+	}
+
+	// Field (0) 'Chunk'
+	{
+		buf = tail[o0:]
+		if e.Chunk == nil {
+			e.Chunk = new(v1.ExecutionChunk)
+		}
+		if err = e.Chunk.UnmarshalSSZ(buf); err != nil {
+			return err
+		}
+	}
+	return err
+}
+
+// SizeSSZ returns the ssz encoded size in bytes for the ExecutionChunkSidecar object
+func (e *ExecutionChunkSidecar) SizeSSZ() (size int) {
+	size = 468
+
+	// Field (0) 'Chunk'
+	if e.Chunk == nil {
+		e.Chunk = new(v1.ExecutionChunk)
+	}
+	size += e.Chunk.SizeSSZ()
+
+	return
+}
+
+// HashTreeRoot ssz hashes the ExecutionChunkSidecar object
+func (e *ExecutionChunkSidecar) HashTreeRoot() ([32]byte, error) {
+	return ssz.HashWithDefaultHasher(e)
+}
+
+// HashTreeRootWith ssz hashes the ExecutionChunkSidecar object with a hasher
+func (e *ExecutionChunkSidecar) HashTreeRootWith(hh *ssz.Hasher) (err error) {
+	indx := hh.Index()
+
+	// Field (0) 'Chunk'
+	if err = e.Chunk.HashTreeRootWith(hh); err != nil {
+		return
+	}
+
+	// Field (1) 'InclusionProof'
+	{
+		if size := len(e.InclusionProof); size != 8 {
+			err = ssz.ErrVectorLengthFn("--.InclusionProof", size, 8)
+			return
+		}
+		subIndx := hh.Index()
+		for _, i := range e.InclusionProof {
+			if len(i) != 32 {
+				err = ssz.ErrBytesLength
+				return
+			}
+			hh.Append(i)
+		}
+		hh.Merkleize(subIndx)
+	}
+
+	// Field (2) 'SignedBlockHeader'
+	if err = e.SignedBlockHeader.HashTreeRootWith(hh); err != nil {
+		return
+	}
+
+	hh.Merkleize(indx)
+	return
+}
+
+// MarshalSSZ ssz marshals the ChunkAccessListSidecar object
+func (c *ChunkAccessListSidecar) MarshalSSZ() ([]byte, error) {
+	return ssz.MarshalSSZ(c)
+}
+
+// MarshalSSZTo ssz marshals the ChunkAccessListSidecar object to a target array
+func (c *ChunkAccessListSidecar) MarshalSSZTo(buf []byte) (dst []byte, err error) {
+	dst = buf
+	offset := int(476)
+
+	// Field (0) 'ChunkIndex'
+	dst = ssz.MarshalUint64(dst, c.ChunkIndex)
+
+	// Offset (1) 'ChunkAccessList'
+	dst = ssz.WriteOffset(dst, offset)
+	offset += len(c.ChunkAccessList)
+
+	// Field (2) 'InclusionProof'
+	if size := len(c.InclusionProof); size != 8 {
+		err = ssz.ErrVectorLengthFn("--.InclusionProof", size, 8)
+		return
+	}
+	for ii := 0; ii < 8; ii++ {
+		if size := len(c.InclusionProof[ii]); size != 32 {
+			err = ssz.ErrBytesLengthFn("--.InclusionProof[ii]", size, 32)
+			return
+		}
+		dst = append(dst, c.InclusionProof[ii]...)
+	}
+
+	// Field (3) 'SignedBlockHeader'
+	if c.SignedBlockHeader == nil {
+		c.SignedBlockHeader = new(SignedBeaconBlockHeader)
+	}
+	if dst, err = c.SignedBlockHeader.MarshalSSZTo(dst); err != nil {
+		return
+	}
+
+	// Field (1) 'ChunkAccessList'
+	if size := len(c.ChunkAccessList); size > 16777216 {
+		err = ssz.ErrBytesLengthFn("--.ChunkAccessList", size, 16777216)
+		return
+	}
+	dst = append(dst, c.ChunkAccessList...)
+
+	return
+}
+
+// UnmarshalSSZ ssz unmarshals the ChunkAccessListSidecar object
+func (c *ChunkAccessListSidecar) UnmarshalSSZ(buf []byte) error {
+	var err error
+	size := uint64(len(buf))
+	if size < 476 {
+		return ssz.ErrSize
+	}
+
+	tail := buf
+	var o1 uint64
+
+	// Field (0) 'ChunkIndex'
+	c.ChunkIndex = ssz.UnmarshallUint64(buf[0:8])
+
+	// Offset (1) 'ChunkAccessList'
+	if o1 = ssz.ReadOffset(buf[8:12]); o1 > size {
+		return ssz.ErrOffset
+	}
+
+	if o1 != 476 {
+		return ssz.ErrInvalidVariableOffset
+	}
+
+	// Field (2) 'InclusionProof'
+	c.InclusionProof = make([][]byte, 8)
+	for ii := 0; ii < 8; ii++ {
+		if cap(c.InclusionProof[ii]) == 0 {
+			c.InclusionProof[ii] = make([]byte, 0, len(buf[12:268][ii*32:(ii+1)*32]))
+		}
+		c.InclusionProof[ii] = append(c.InclusionProof[ii], buf[12:268][ii*32:(ii+1)*32]...)
+	}
+
+	// Field (3) 'SignedBlockHeader'
+	if c.SignedBlockHeader == nil {
+		c.SignedBlockHeader = new(SignedBeaconBlockHeader)
+	}
+	if err = c.SignedBlockHeader.UnmarshalSSZ(buf[268:476]); err != nil {
+		return err
+	}
+
+	// Field (1) 'ChunkAccessList'
+	{
+		buf = tail[o1:]
+		if len(buf) > 16777216 {
+			return ssz.ErrBytesLength
+		}
+		if cap(c.ChunkAccessList) == 0 {
+			c.ChunkAccessList = make([]byte, 0, len(buf))
+		}
+		c.ChunkAccessList = append(c.ChunkAccessList, buf...)
+	}
+	return err
+}
+
+// SizeSSZ returns the ssz encoded size in bytes for the ChunkAccessListSidecar object
+func (c *ChunkAccessListSidecar) SizeSSZ() (size int) {
+	size = 476
+
+	// Field (1) 'ChunkAccessList'
+	size += len(c.ChunkAccessList)
+
+	return
+}
+
+// HashTreeRoot ssz hashes the ChunkAccessListSidecar object
+func (c *ChunkAccessListSidecar) HashTreeRoot() ([32]byte, error) {
+	return ssz.HashWithDefaultHasher(c)
+}
+
+// HashTreeRootWith ssz hashes the ChunkAccessListSidecar object with a hasher
+func (c *ChunkAccessListSidecar) HashTreeRootWith(hh *ssz.Hasher) (err error) {
+	indx := hh.Index()
+
+	// Field (0) 'ChunkIndex'
+	hh.PutUint64(c.ChunkIndex)
+
+	// Field (1) 'ChunkAccessList'
+	{
+		elemIndx := hh.Index()
+		byteLen := uint64(len(c.ChunkAccessList))
+		if byteLen > 16777216 {
+			err = ssz.ErrIncorrectListSize
+			return
+		}
+		hh.PutBytes(c.ChunkAccessList)
+		hh.MerkleizeWithMixin(elemIndx, byteLen, (16777216+31)/32)
+	}
+
+	// Field (2) 'InclusionProof'
+	{
+		if size := len(c.InclusionProof); size != 8 {
+			err = ssz.ErrVectorLengthFn("--.InclusionProof", size, 8)
+			return
+		}
+		subIndx := hh.Index()
+		for _, i := range c.InclusionProof {
+			if len(i) != 32 {
+				err = ssz.ErrBytesLength
+				return
+			}
+			hh.Append(i)
+		}
+		hh.Merkleize(subIndx)
+	}
+
+	// Field (3) 'SignedBlockHeader'
+	if err = c.SignedBlockHeader.HashTreeRootWith(hh); err != nil {
+		return
 	}
 
 	hh.Merkleize(indx)
