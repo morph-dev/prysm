@@ -330,6 +330,8 @@ func (s *Service) registerSubscribers(nse params.NetworkScheduleEntry) bool {
 			})
 		})
 	}
+
+	// TODO: sidechannels
 	return true
 }
 

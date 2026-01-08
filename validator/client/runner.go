@@ -236,6 +236,7 @@ func initialize(ctx context.Context, v iface.Validator) error {
 	return nil
 }
 
+// HERE
 func performRoles(slotCtx context.Context, allRoles map[[48]byte][]iface.ValidatorRole, v iface.Validator, slot primitives.Slot, wg *sync.WaitGroup, span trace.Span) {
 	for pubKey, roles := range allRoles {
 		wg.Add(len(roles))

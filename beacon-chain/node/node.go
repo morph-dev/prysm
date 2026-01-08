@@ -131,6 +131,7 @@ type BeaconNode struct {
 	lcStore                  *lightclient.Store
 	ConfigOptions            []params.Option
 	SyncNeedsWaiter          func() (das.SyncNeeds, error)
+	// TODO: add cache for chunks and cals
 }
 
 // New creates a new node instance, sets up configuration options, and registers

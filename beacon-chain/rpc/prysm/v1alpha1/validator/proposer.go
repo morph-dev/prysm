@@ -270,6 +270,7 @@ func (vs *Server) BuildBlockParallel(ctx context.Context, sBlk interfaces.Signed
 	}
 	sBlk.SetStateRoot(sr)
 
+	// TODO: building block
 	return vs.constructGenericBeaconBlock(sBlk, bundle, winningBid)
 }
 
