@@ -243,30 +243,3 @@ func (payload *ExecutionPayloadGloas) Copy() *ExecutionPayloadGloas {
 		BlockAccessListHash: payload.BlockAccessListHash,
 	}
 }
-
-// Copy -- Gloas
-func (payload *ExecutionPayloadHeaderGloas) Copy() *ExecutionPayloadHeaderGloas {
-	if payload == nil {
-		return nil
-	}
-	return &ExecutionPayloadHeaderGloas{
-		ParentHash:          bytesutil.SafeCopyBytes(payload.ParentHash),
-		FeeRecipient:        bytesutil.SafeCopyBytes(payload.FeeRecipient),
-		StateRoot:           bytesutil.SafeCopyBytes(payload.StateRoot),
-		ReceiptsRoot:        bytesutil.SafeCopyBytes(payload.ReceiptsRoot),
-		LogsBloom:           bytesutil.SafeCopyBytes(payload.LogsBloom),
-		PrevRandao:          bytesutil.SafeCopyBytes(payload.PrevRandao),
-		BlockNumber:         payload.BlockNumber,
-		GasLimit:            payload.GasLimit,
-		GasUsed:             payload.GasUsed,
-		Timestamp:           payload.Timestamp,
-		ExtraData:           bytesutil.SafeCopyBytes(payload.ExtraData),
-		BaseFeePerGas:       bytesutil.SafeCopyBytes(payload.BaseFeePerGas),
-		BlockHash:           bytesutil.SafeCopyBytes(payload.BlockHash),
-		TransactionsRoot:    bytesutil.SafeCopyBytes(payload.TransactionsRoot),
-		WithdrawalsRoot:     bytesutil.SafeCopyBytes(payload.WithdrawalsRoot),
-		BlobGasUsed:         payload.BlobGasUsed,
-		ExcessBlobGas:       payload.ExcessBlobGas,
-		BlockAccessListHash: payload.BlockAccessListHash,
-	}
-}

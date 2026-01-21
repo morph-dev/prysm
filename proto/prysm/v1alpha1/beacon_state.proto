@@ -793,8 +793,8 @@ message BeaconStateGloas {
   SyncCommittee next_sync_committee = 9003;
 
   // Fields introduced in Bellatrix fork [10001-11000]
-  // [Modified in EIP7928] - Gloas uses ExecutionPayloadHeaderGloas
-  ethereum.engine.v1.ExecutionPayloadHeaderGloas
+  // [Modified in EIP7928] - Gloas uses ExecutionPayloadGloas
+  ethereum.engine.v1.ExecutionPayloadGloas
       latest_execution_payload_header = 10001;
 
   // Fields introduced in Capella fork [11001-12000]

@@ -44,7 +44,6 @@ ssz_gen_marshal(
         "ExecutionPayloadDenebAndBlobsBundle",
         "ExecutionPayloadDenebAndBlobsBundleV2",
         "ExecutionPayloadGloas",
-        "ExecutionPayloadHeaderGloas",
         "BlindedBlobsBundle",
         "BlobsBundle",
         "BlobsBundleV2",

@@ -1691,7 +1691,7 @@ func (b *BeaconStateGloas) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	// Offset (24) 'LatestExecutionPayloadHeader'
 	dst = ssz.WriteOffset(dst, offset)
 	if b.LatestExecutionPayloadHeader == nil {
-		b.LatestExecutionPayloadHeader = new(v1.ExecutionPayloadHeaderGloas)
+		b.LatestExecutionPayloadHeader = new(v1.ExecutionPayloadGloas)
 	}
 	offset += b.LatestExecutionPayloadHeader.SizeSSZ()
 
@@ -2192,7 +2192,7 @@ func (b *BeaconStateGloas) UnmarshalSSZ(buf []byte) error {
 	{
 		buf = tail[o24:o27]
 		if b.LatestExecutionPayloadHeader == nil {
-			b.LatestExecutionPayloadHeader = new(v1.ExecutionPayloadHeaderGloas)
+			b.LatestExecutionPayloadHeader = new(v1.ExecutionPayloadGloas)
 		}
 		if err = b.LatestExecutionPayloadHeader.UnmarshalSSZ(buf); err != nil {
 			return err
@@ -2300,7 +2300,7 @@ func (b *BeaconStateGloas) SizeSSZ() (size int) {
 
 	// Field (24) 'LatestExecutionPayloadHeader'
 	if b.LatestExecutionPayloadHeader == nil {
-		b.LatestExecutionPayloadHeader = new(v1.ExecutionPayloadHeaderGloas)
+		b.LatestExecutionPayloadHeader = new(v1.ExecutionPayloadGloas)
 	}
 	size += b.LatestExecutionPayloadHeader.SizeSSZ()
 
