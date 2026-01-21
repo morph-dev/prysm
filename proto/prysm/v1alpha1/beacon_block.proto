@@ -21,6 +21,7 @@ import "proto/prysm/v1alpha1/withdrawals.proto";
 import "proto/prysm/v1alpha1/beacon_core_types.proto";
 import "proto/engine/v1/execution_engine.proto";
 import "proto/engine/v1/electra.proto";
+import "proto/engine/v1/gloas.proto";
 
 option csharp_namespace = "Ethereum.Eth.v1alpha1";
 option go_package = "github.com/OffchainLabs/prysm/v6/proto/prysm/v1alpha1;eth";
@@ -1112,6 +1113,10 @@ message BlindedBeaconBlockFulu {
   BlindedBeaconBlockBodyElectra body = 5;
 }
 
+// ----------------------------------------------------------------------------
+// Gloas
+// ----------------------------------------------------------------------------
+
 // Gloas structures
 message BeaconBlockBodyGloas {
   // The validators RANDAO reveal 96 byte value.
@@ -1154,7 +1159,7 @@ message BeaconBlockBodyGloas {
 
   ethereum.engine.v1.ExecutionRequests execution_requests = 13;
 
-  // Gloas - EIP-8101
+  // EIP-8101
   bytes chunk_headers_root = 14 [ (ethereum.eth.ext.ssz_size) = "32" ];
   bytes chunk_access_lists_root = 15 [ (ethereum.eth.ext.ssz_size) = "32" ];
 }
@@ -1194,6 +1199,9 @@ message SignedBeaconBlockContentsGloas {
     (ethereum.eth.ext.ssz_size) = "?,blob.size",
     (ethereum.eth.ext.ssz_max) = "max_blob_commitments.size"
   ];
+  repeated ethereum.engine.v1.ExecutionChunkBundle chunks = 4 [
+    (ethereum.eth.ext.ssz_max) = "chunks.size"
+  ];
 }
 
 message BeaconBlockContentsGloas {
@@ -1205,5 +1213,8 @@ message BeaconBlockContentsGloas {
   repeated bytes blobs = 3 [
     (ethereum.eth.ext.ssz_size) = "?,blob.size",
     (ethereum.eth.ext.ssz_max) = "max_blob_commitments.size"
+  ];
+  repeated ethereum.engine.v1.ExecutionChunkBundle chunks = 4 [
+    (ethereum.eth.ext.ssz_max) = "chunks.size"
   ];
 }

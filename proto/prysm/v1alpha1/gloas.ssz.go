@@ -957,7 +957,7 @@ func (s *SignedBeaconBlockContentsGloas) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the SignedBeaconBlockContentsGloas object to a target array
 func (s *SignedBeaconBlockContentsGloas) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int(12)
+	offset := int(16)
 
 	// Offset (0) 'Block'
 	dst = ssz.WriteOffset(dst, offset)
@@ -973,6 +973,13 @@ func (s *SignedBeaconBlockContentsGloas) MarshalSSZTo(buf []byte) (dst []byte, e
 	// Offset (2) 'Blobs'
 	dst = ssz.WriteOffset(dst, offset)
 	offset += len(s.Blobs) * 131072
+
+	// Offset (3) 'Chunks'
+	dst = ssz.WriteOffset(dst, offset)
+	for ii := 0; ii < len(s.Chunks); ii++ {
+		offset += 4
+		offset += s.Chunks[ii].SizeSSZ()
+	}
 
 	// Field (0) 'Block'
 	if dst, err = s.Block.MarshalSSZTo(dst); err != nil {
@@ -1005,6 +1012,24 @@ func (s *SignedBeaconBlockContentsGloas) MarshalSSZTo(buf []byte) (dst []byte, e
 		dst = append(dst, s.Blobs[ii]...)
 	}
 
+	// Field (3) 'Chunks'
+	if size := len(s.Chunks); size > 256 {
+		err = ssz.ErrListTooBigFn("--.Chunks", size, 256)
+		return
+	}
+	{
+		offset = 4 * len(s.Chunks)
+		for ii := 0; ii < len(s.Chunks); ii++ {
+			dst = ssz.WriteOffset(dst, offset)
+			offset += s.Chunks[ii].SizeSSZ()
+		}
+	}
+	for ii := 0; ii < len(s.Chunks); ii++ {
+		if dst, err = s.Chunks[ii].MarshalSSZTo(dst); err != nil {
+			return
+		}
+	}
+
 	return
 }
 
@@ -1012,19 +1037,19 @@ func (s *SignedBeaconBlockContentsGloas) MarshalSSZTo(buf []byte) (dst []byte, e
 func (s *SignedBeaconBlockContentsGloas) UnmarshalSSZ(buf []byte) error {
 	var err error
 	size := uint64(len(buf))
-	if size < 12 {
+	if size < 16 {
 		return ssz.ErrSize
 	}
 
 	tail := buf
-	var o0, o1, o2 uint64
+	var o0, o1, o2, o3 uint64
 
 	// Offset (0) 'Block'
 	if o0 = ssz.ReadOffset(buf[0:4]); o0 > size {
 		return ssz.ErrOffset
 	}
 
-	if o0 != 12 {
+	if o0 != 16 {
 		return ssz.ErrInvalidVariableOffset
 	}
 
@@ -1035,6 +1060,11 @@ func (s *SignedBeaconBlockContentsGloas) UnmarshalSSZ(buf []byte) error {
 
 	// Offset (2) 'Blobs'
 	if o2 = ssz.ReadOffset(buf[8:12]); o2 > size || o1 > o2 {
+		return ssz.ErrOffset
+	}
+
+	// Offset (3) 'Chunks'
+	if o3 = ssz.ReadOffset(buf[12:16]); o3 > size || o2 > o3 {
 		return ssz.ErrOffset
 	}
 
@@ -1067,7 +1097,7 @@ func (s *SignedBeaconBlockContentsGloas) UnmarshalSSZ(buf []byte) error {
 
 	// Field (2) 'Blobs'
 	{
-		buf = tail[o2:]
+		buf = tail[o2:o3]
 		num, err := ssz.DivideInt2(len(buf), 131072, 4096)
 		if err != nil {
 			return err
@@ -1080,12 +1110,34 @@ func (s *SignedBeaconBlockContentsGloas) UnmarshalSSZ(buf []byte) error {
 			s.Blobs[ii] = append(s.Blobs[ii], buf[ii*131072:(ii+1)*131072]...)
 		}
 	}
+
+	// Field (3) 'Chunks'
+	{
+		buf = tail[o3:]
+		num, err := ssz.DecodeDynamicLength(buf, 256)
+		if err != nil {
+			return err
+		}
+		s.Chunks = make([]*v1.ExecutionChunkBundle, num)
+		err = ssz.UnmarshalDynamic(buf, num, func(indx int, buf []byte) (err error) {
+			if s.Chunks[indx] == nil {
+				s.Chunks[indx] = new(v1.ExecutionChunkBundle)
+			}
+			if err = s.Chunks[indx].UnmarshalSSZ(buf); err != nil {
+				return err
+			}
+			return nil
+		})
+		if err != nil {
+			return err
+		}
+	}
 	return err
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the SignedBeaconBlockContentsGloas object
 func (s *SignedBeaconBlockContentsGloas) SizeSSZ() (size int) {
-	size = 12
+	size = 16
 
 	// Field (0) 'Block'
 	if s.Block == nil {
@@ -1098,6 +1150,12 @@ func (s *SignedBeaconBlockContentsGloas) SizeSSZ() (size int) {
 
 	// Field (2) 'Blobs'
 	size += len(s.Blobs) * 131072
+
+	// Field (3) 'Chunks'
+	for ii := 0; ii < len(s.Chunks); ii++ {
+		size += 4
+		size += s.Chunks[ii].SizeSSZ()
+	}
 
 	return
 }
@@ -1154,6 +1212,22 @@ func (s *SignedBeaconBlockContentsGloas) HashTreeRootWith(hh *ssz.Hasher) (err e
 		hh.MerkleizeWithMixin(subIndx, numItems, 4096)
 	}
 
+	// Field (3) 'Chunks'
+	{
+		subIndx := hh.Index()
+		num := uint64(len(s.Chunks))
+		if num > 256 {
+			err = ssz.ErrIncorrectListSize
+			return
+		}
+		for _, elem := range s.Chunks {
+			if err = elem.HashTreeRootWith(hh); err != nil {
+				return
+			}
+		}
+		hh.MerkleizeWithMixin(subIndx, num, 256)
+	}
+
 	hh.Merkleize(indx)
 	return
 }
@@ -1166,7 +1240,7 @@ func (b *BeaconBlockContentsGloas) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the BeaconBlockContentsGloas object to a target array
 func (b *BeaconBlockContentsGloas) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int(12)
+	offset := int(16)
 
 	// Offset (0) 'Block'
 	dst = ssz.WriteOffset(dst, offset)
@@ -1182,6 +1256,13 @@ func (b *BeaconBlockContentsGloas) MarshalSSZTo(buf []byte) (dst []byte, err err
 	// Offset (2) 'Blobs'
 	dst = ssz.WriteOffset(dst, offset)
 	offset += len(b.Blobs) * 131072
+
+	// Offset (3) 'Chunks'
+	dst = ssz.WriteOffset(dst, offset)
+	for ii := 0; ii < len(b.Chunks); ii++ {
+		offset += 4
+		offset += b.Chunks[ii].SizeSSZ()
+	}
 
 	// Field (0) 'Block'
 	if dst, err = b.Block.MarshalSSZTo(dst); err != nil {
@@ -1214,6 +1295,24 @@ func (b *BeaconBlockContentsGloas) MarshalSSZTo(buf []byte) (dst []byte, err err
 		dst = append(dst, b.Blobs[ii]...)
 	}
 
+	// Field (3) 'Chunks'
+	if size := len(b.Chunks); size > 256 {
+		err = ssz.ErrListTooBigFn("--.Chunks", size, 256)
+		return
+	}
+	{
+		offset = 4 * len(b.Chunks)
+		for ii := 0; ii < len(b.Chunks); ii++ {
+			dst = ssz.WriteOffset(dst, offset)
+			offset += b.Chunks[ii].SizeSSZ()
+		}
+	}
+	for ii := 0; ii < len(b.Chunks); ii++ {
+		if dst, err = b.Chunks[ii].MarshalSSZTo(dst); err != nil {
+			return
+		}
+	}
+
 	return
 }
 
@@ -1221,19 +1320,19 @@ func (b *BeaconBlockContentsGloas) MarshalSSZTo(buf []byte) (dst []byte, err err
 func (b *BeaconBlockContentsGloas) UnmarshalSSZ(buf []byte) error {
 	var err error
 	size := uint64(len(buf))
-	if size < 12 {
+	if size < 16 {
 		return ssz.ErrSize
 	}
 
 	tail := buf
-	var o0, o1, o2 uint64
+	var o0, o1, o2, o3 uint64
 
 	// Offset (0) 'Block'
 	if o0 = ssz.ReadOffset(buf[0:4]); o0 > size {
 		return ssz.ErrOffset
 	}
 
-	if o0 != 12 {
+	if o0 != 16 {
 		return ssz.ErrInvalidVariableOffset
 	}
 
@@ -1244,6 +1343,11 @@ func (b *BeaconBlockContentsGloas) UnmarshalSSZ(buf []byte) error {
 
 	// Offset (2) 'Blobs'
 	if o2 = ssz.ReadOffset(buf[8:12]); o2 > size || o1 > o2 {
+		return ssz.ErrOffset
+	}
+
+	// Offset (3) 'Chunks'
+	if o3 = ssz.ReadOffset(buf[12:16]); o3 > size || o2 > o3 {
 		return ssz.ErrOffset
 	}
 
@@ -1276,7 +1380,7 @@ func (b *BeaconBlockContentsGloas) UnmarshalSSZ(buf []byte) error {
 
 	// Field (2) 'Blobs'
 	{
-		buf = tail[o2:]
+		buf = tail[o2:o3]
 		num, err := ssz.DivideInt2(len(buf), 131072, 4096)
 		if err != nil {
 			return err
@@ -1289,12 +1393,34 @@ func (b *BeaconBlockContentsGloas) UnmarshalSSZ(buf []byte) error {
 			b.Blobs[ii] = append(b.Blobs[ii], buf[ii*131072:(ii+1)*131072]...)
 		}
 	}
+
+	// Field (3) 'Chunks'
+	{
+		buf = tail[o3:]
+		num, err := ssz.DecodeDynamicLength(buf, 256)
+		if err != nil {
+			return err
+		}
+		b.Chunks = make([]*v1.ExecutionChunkBundle, num)
+		err = ssz.UnmarshalDynamic(buf, num, func(indx int, buf []byte) (err error) {
+			if b.Chunks[indx] == nil {
+				b.Chunks[indx] = new(v1.ExecutionChunkBundle)
+			}
+			if err = b.Chunks[indx].UnmarshalSSZ(buf); err != nil {
+				return err
+			}
+			return nil
+		})
+		if err != nil {
+			return err
+		}
+	}
 	return err
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the BeaconBlockContentsGloas object
 func (b *BeaconBlockContentsGloas) SizeSSZ() (size int) {
-	size = 12
+	size = 16
 
 	// Field (0) 'Block'
 	if b.Block == nil {
@@ -1307,6 +1433,12 @@ func (b *BeaconBlockContentsGloas) SizeSSZ() (size int) {
 
 	// Field (2) 'Blobs'
 	size += len(b.Blobs) * 131072
+
+	// Field (3) 'Chunks'
+	for ii := 0; ii < len(b.Chunks); ii++ {
+		size += 4
+		size += b.Chunks[ii].SizeSSZ()
+	}
 
 	return
 }
@@ -1361,6 +1493,22 @@ func (b *BeaconBlockContentsGloas) HashTreeRootWith(hh *ssz.Hasher) (err error) 
 
 		numItems := uint64(len(b.Blobs))
 		hh.MerkleizeWithMixin(subIndx, numItems, 4096)
+	}
+
+	// Field (3) 'Chunks'
+	{
+		subIndx := hh.Index()
+		num := uint64(len(b.Chunks))
+		if num > 256 {
+			err = ssz.ErrIncorrectListSize
+			return
+		}
+		for _, elem := range b.Chunks {
+			if err = elem.HashTreeRootWith(hh); err != nil {
+				return
+			}
+		}
+		hh.MerkleizeWithMixin(subIndx, num, 256)
 	}
 
 	hh.Merkleize(indx)

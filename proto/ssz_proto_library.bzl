@@ -43,6 +43,7 @@ mainnet = {
     "cells_per_blob.size": "128",
     "kzg_commitments_inclusion_proof_depth.size": "4",
     "proposer_lookahead_size": "64",  # (MIN_SEED_LOOKAHEAD + 1) * SLOTS_PER_EPOCH
+    "chunks.size": "256",
 }
 
 minimal = {
@@ -82,6 +83,7 @@ minimal = {
     "cells_per_blob.size": "128",
     "kzg_commitments_inclusion_proof_depth.size": "4",
     "proposer_lookahead_size": "16",  # (MIN_SEED_LOOKAHEAD + 1) * SLOTS_PER_EPOCH
+    "chunks.size": "256",
 }
 
 ###### Rules definitions #######

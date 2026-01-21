@@ -1613,6 +1613,7 @@ func (e *ExecutionBundleGloas) UnmarshalJSON(enc []byte) error {
 	}
 	e.ExecutionRequests = reqs
 
+	// EIP-8101
 	e.Chunks = dec.Chunks
 
 	return nil
