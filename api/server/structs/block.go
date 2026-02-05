@@ -503,3 +503,62 @@ func (s *SignedBlindedBeaconBlockFulu) MessageRawJson() ([]byte, error) {
 func (s *SignedBlindedBeaconBlockFulu) SigString() string {
 	return s.Signature
 }
+
+// ----------------------------------------------------------------------------
+// Gloas
+// ----------------------------------------------------------------------------
+
+type SignedBeaconBlockContentsGloas struct {
+	SignedBlock *SignedBeaconBlockGloas `json:"signed_block"`
+	KzgProofs   []string                `json:"kzg_proofs"`
+	Blobs       []string                `json:"blobs"`
+	Chunks      []*ExecutionChunkBundle `json:"chunks"`
+}
+
+type BeaconBlockContentsGloas struct {
+	Block     *BeaconBlockGloas       `json:"block"`
+	KzgProofs []string                `json:"kzg_proofs"`
+	Blobs     []string                `json:"blobs"`
+	Chunks    []*ExecutionChunkBundle `json:"chunks"`
+}
+
+type SignedBeaconBlockGloas struct {
+	Message   *BeaconBlockGloas `json:"message"`
+	Signature string            `json:"signature"`
+}
+
+var _ SignedMessageJsoner = &SignedBeaconBlockGloas{}
+
+func (s *SignedBeaconBlockGloas) MessageRawJson() ([]byte, error) {
+	return json.Marshal(s.Message)
+}
+
+func (s *SignedBeaconBlockGloas) SigString() string {
+	return s.Signature
+}
+
+type BeaconBlockGloas struct {
+	Slot          string                `json:"slot"`
+	ProposerIndex string                `json:"proposer_index"`
+	ParentRoot    string                `json:"parent_root"`
+	StateRoot     string                `json:"state_root"`
+	Body          *BeaconBlockBodyGloas `json:"body"`
+}
+
+type BeaconBlockBodyGloas struct {
+	RandaoReveal           string                        `json:"randao_reveal"`
+	Eth1Data               *Eth1Data                     `json:"eth1_data"`
+	Graffiti               string                        `json:"graffiti"`
+	ProposerSlashings      []*ProposerSlashing           `json:"proposer_slashings"`
+	AttesterSlashings      []*AttesterSlashingElectra    `json:"attester_slashings"`
+	Attestations           []*AttestationElectra         `json:"attestations"`
+	Deposits               []*Deposit                    `json:"deposits"`
+	VoluntaryExits         []*SignedVoluntaryExit        `json:"voluntary_exits"`
+	SyncAggregate          *SyncAggregate                `json:"sync_aggregate"`
+	ExecutionPayloadHeader *ExecutionPayloadHeaderGloas  `json:"execution_payload_header"`
+	BLSToExecutionChanges  []*SignedBLSToExecutionChange `json:"bls_to_execution_changes"`
+	BlobKzgCommitments     []string                      `json:"blob_kzg_commitments"`
+	ExecutionRequests      *ExecutionRequests            `json:"execution_requests"`
+	ChunkHeadersRoot       string                        `json:"chunk_headers_root"`
+	ChunkAccessListsRoot   string                        `json:"chunk_access_lists_root"`
+}

@@ -48,4 +48,7 @@ const (
 	// Introduced in Fulu network upgrade.
 	NumberOfColumns = 128 // NumberOfColumns refers to the specified number of data columns that can exist in a network.
 	CellsPerBlob    = 64  // CellsPerBlob refers to the number of cells in a (non-extended) blob.
+
+	// Introduced in Gloas
+	MaxBytesPerTxChunkAccessList = 16777216
 )

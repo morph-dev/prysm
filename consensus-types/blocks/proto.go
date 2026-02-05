@@ -186,20 +186,6 @@ func (b *SignedBeaconBlock) Proto() (proto.Message, error) { // nolint:gocognit
 			Signature: b.signature[:],
 		}, nil
 	case version.Gloas:
-		if b.IsBlinded() {
-			var block *eth.BlindedBeaconBlockFulu
-			if blockMessage != nil {
-				var ok bool
-				block, ok = blockMessage.(*eth.BlindedBeaconBlockFulu)
-				if !ok {
-					return nil, errIncorrectBlockVersion
-				}
-			}
-			return &eth.SignedBlindedBeaconBlockFulu{
-				Message:   block,
-				Signature: b.signature[:],
-			}, nil
-		}
 		var block *eth.BeaconBlockGloas
 		if blockMessage != nil {
 			var ok bool
@@ -427,23 +413,6 @@ func (b *BeaconBlock) Proto() (proto.Message, error) { // nolint:gocognit
 			Body:          body,
 		}, nil
 	case version.Gloas:
-		if b.IsBlinded() {
-			var body *eth.BlindedBeaconBlockBodyElectra
-			if bodyMessage != nil {
-				var ok bool
-				body, ok = bodyMessage.(*eth.BlindedBeaconBlockBodyElectra)
-				if !ok {
-					return nil, errIncorrectBodyVersion
-				}
-			}
-			return &eth.BlindedBeaconBlockFulu{
-				Slot:          b.slot,
-				ProposerIndex: b.proposerIndex,
-				ParentRoot:    b.parentRoot[:],
-				StateRoot:     b.stateRoot[:],
-				Body:          body,
-			}, nil
-		}
 		var body *eth.BeaconBlockBodyGloas
 		if bodyMessage != nil {
 			var ok bool
@@ -729,76 +698,30 @@ func (b *BeaconBlockBody) Proto() (proto.Message, error) {
 			ExecutionRequests:     b.executionRequests,
 		}, nil
 	case version.Gloas:
-		if b.IsBlinded() {
-			var ph *enginev1.ExecutionPayloadHeaderGloas
-			var ok bool
-			if b.executionPayloadHeader != nil {
-				ph, ok = b.executionPayloadHeader.Proto().(*enginev1.ExecutionPayloadHeaderGloas)
-				if !ok {
-					return nil, errPayloadHeaderWrongType
-				}
-			}
-			// Use Electra body for now until Gloas-specific blinded body is created
-			denebHeader := &enginev1.ExecutionPayloadHeaderDeneb{}
-			if ph != nil {
-				denebHeader = &enginev1.ExecutionPayloadHeaderDeneb{
-					ParentHash:       ph.ParentHash,
-					FeeRecipient:     ph.FeeRecipient,
-					StateRoot:        ph.StateRoot,
-					ReceiptsRoot:     ph.ReceiptsRoot,
-					LogsBloom:        ph.LogsBloom,
-					PrevRandao:       ph.PrevRandao,
-					BlockNumber:      ph.BlockNumber,
-					GasLimit:         ph.GasLimit,
-					GasUsed:          ph.GasUsed,
-					Timestamp:        ph.Timestamp,
-					ExtraData:        ph.ExtraData,
-					BaseFeePerGas:    ph.BaseFeePerGas,
-					BlockHash:        ph.BlockHash,
-					TransactionsRoot: ph.TransactionsRoot,
-					WithdrawalsRoot:  ph.WithdrawalsRoot,
-					BlobGasUsed:      ph.BlobGasUsed,
-					ExcessBlobGas:    ph.ExcessBlobGas,
-				}
-			}
-			return &eth.BlindedBeaconBlockBodyElectra{
-				RandaoReveal:           b.randaoReveal[:],
-				Eth1Data:               b.eth1Data,
-				Graffiti:               b.graffiti[:],
-				ProposerSlashings:      b.proposerSlashings,
-				AttesterSlashings:      b.attesterSlashingsElectra,
-				Attestations:           b.attestationsElectra,
-				Deposits:               b.deposits,
-				VoluntaryExits:         b.voluntaryExits,
-				SyncAggregate:          b.syncAggregate,
-				ExecutionPayloadHeader: denebHeader,
-				BlsToExecutionChanges:  b.blsToExecutionChanges,
-				BlobKzgCommitments:     b.blobKzgCommitments,
-				ExecutionRequests:      b.executionRequests,
-			}, nil
-		}
-		var p *enginev1.ExecutionPayloadGloas
+		var p *enginev1.ExecutionPayloadHeaderGloas
 		var ok bool
-		if b.executionPayload != nil {
-			p, ok = b.executionPayload.Proto().(*enginev1.ExecutionPayloadGloas)
+		if b.executionPayloadHeader != nil {
+			p, ok = b.executionPayloadHeader.Proto().(*enginev1.ExecutionPayloadHeaderGloas)
 			if !ok {
 				return nil, errPayloadWrongType
 			}
 		}
 		return &eth.BeaconBlockBodyGloas{
-			RandaoReveal:          b.randaoReveal[:],
-			Eth1Data:              b.eth1Data,
-			Graffiti:              b.graffiti[:],
-			ProposerSlashings:     b.proposerSlashings,
-			AttesterSlashings:     b.attesterSlashingsElectra,
-			Attestations:          b.attestationsElectra,
-			Deposits:              b.deposits,
-			VoluntaryExits:        b.voluntaryExits,
-			SyncAggregate:         b.syncAggregate,
-			ExecutionPayload:      p,
-			BlsToExecutionChanges: b.blsToExecutionChanges,
-			BlobKzgCommitments:    b.blobKzgCommitments,
-			ExecutionRequests:     b.executionRequests,
+			RandaoReveal:           b.randaoReveal[:],
+			Eth1Data:               b.eth1Data,
+			Graffiti:               b.graffiti[:],
+			ProposerSlashings:      b.proposerSlashings,
+			AttesterSlashings:      b.attesterSlashingsElectra,
+			Attestations:           b.attestationsElectra,
+			Deposits:               b.deposits,
+			VoluntaryExits:         b.voluntaryExits,
+			SyncAggregate:          b.syncAggregate,
+			ExecutionPayloadHeader: p,
+			BlsToExecutionChanges:  b.blsToExecutionChanges,
+			BlobKzgCommitments:     b.blobKzgCommitments,
+			ExecutionRequests:      b.executionRequests,
+			ChunkHeadersRoot:       b.chunkHeadersRoot[:],
+			ChunkAccessListsRoot:   b.chunkAccessListsRoot[:],
 		}, nil
 	default:
 		return nil, errors.New("unsupported beacon block body version")
@@ -1656,7 +1579,7 @@ func initBlockBodyFromProtoGloas(pb *eth.BeaconBlockBodyGloas) (*BeaconBlockBody
 		return nil, errNilBlockBody
 	}
 
-	p, err := WrappedExecutionPayloadGloas(pb.ExecutionPayload)
+	p, err := WrappedExecutionPayloadHeaderGloas(pb.ExecutionPayloadHeader)
 	// We allow the payload to be nil
 	if err != nil && !errors.Is(err, consensus_types.ErrNilObjectWrapped) {
 		return nil, err
@@ -1676,10 +1599,12 @@ func initBlockBodyFromProtoGloas(pb *eth.BeaconBlockBodyGloas) (*BeaconBlockBody
 		deposits:                 pb.Deposits,
 		voluntaryExits:           pb.VoluntaryExits,
 		syncAggregate:            pb.SyncAggregate,
-		executionPayload:         p,
+		executionPayloadHeader:   p,
 		blsToExecutionChanges:    pb.BlsToExecutionChanges,
 		blobKzgCommitments:       pb.BlobKzgCommitments,
 		executionRequests:        er,
+		chunkHeadersRoot:         bytesutil.ToBytes32(pb.ChunkHeadersRoot),
+		chunkAccessListsRoot:     bytesutil.ToBytes32(pb.ChunkAccessListsRoot),
 	}
 	return b, nil
 }

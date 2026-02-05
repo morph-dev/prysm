@@ -209,6 +209,12 @@ func (s *Server) produceBlockV3(ctx context.Context, w http.ResponseWriter, r *h
 		handleProduceFuluV3(w, isSSZ, fuluBlockContents, v1alpha1resp.PayloadValue, consensusBlockValue)
 		return
 	}
+	gloasBlockContents, ok := v1alpha1resp.Block.(*eth.GenericBeaconBlock_Gloas)
+	if ok {
+		w.Header().Set(api.VersionHeader, version.String(version.Gloas))
+		handleProduceGloasV3(w, isSSZ, gloasBlockContents, v1alpha1resp.PayloadValue, consensusBlockValue)
+		return
+	}
 }
 
 func getConsensusBlockValue(ctx context.Context, blockRewardsFetcher rewards.BlockRewardsFetcher, i interface{} /* block as argument */) (string, *httputil.DefaultJsonError) {
@@ -645,6 +651,42 @@ func handleProduceFuluV3(
 	}
 	httputil.WriteJson(w, &structs.ProduceBlockV3Response{
 		Version:                 version.String(version.Fulu),
+		ExecutionPayloadBlinded: false,
+		ExecutionPayloadValue:   executionPayloadValue, // mev not available at this point
+		ConsensusBlockValue:     consensusBlockValue,
+		Data:                    jsonBytes,
+	})
+}
+
+func handleProduceGloasV3(
+	w http.ResponseWriter,
+	isSSZ bool,
+	blk *eth.GenericBeaconBlock_Gloas,
+	executionPayloadValue string,
+	consensusBlockValue string,
+) {
+	if isSSZ {
+		sszResp, err := blk.Gloas.MarshalSSZ()
+		if err != nil {
+			httputil.HandleError(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		httputil.WriteSsz(w, sszResp)
+		return
+	}
+
+	blockContents, err := structs.BeaconBlockContentsGloasFromConsensus(blk.Gloas)
+	if err != nil {
+		httputil.HandleError(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	jsonBytes, err := json.Marshal(blockContents)
+	if err != nil {
+		httputil.HandleError(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	httputil.WriteJson(w, &structs.ProduceBlockV3Response{
+		Version:                 version.String(version.Gloas),
 		ExecutionPayloadBlinded: false,
 		ExecutionPayloadValue:   executionPayloadValue, // mev not available at this point
 		ConsensusBlockValue:     consensusBlockValue,

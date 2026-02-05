@@ -55,17 +55,6 @@ func (b *BeaconState) SetLatestExecutionPayloadHeader(val interfaces.ExecutionDa
 		b.latestExecutionPayloadHeaderDeneb = latest
 		b.markFieldAsDirty(types.LatestExecutionPayloadHeaderDeneb)
 		return nil
-	case *enginev1.ExecutionPayloadGloas:
-		if !(b.version >= version.Gloas) {
-			return fmt.Errorf("wrong state version (%s) for gloas execution payload", version.String(b.version))
-		}
-		latest, err := consensusblocks.PayloadToHeaderGloas(val)
-		if err != nil {
-			return errors.Wrap(err, "could not convert payload to header")
-		}
-		b.latestExecutionPayloadHeaderGloas = latest
-		b.markFieldAsDirty(types.LatestExecutionPayloadHeaderGloas)
-		return nil
 	case *enginev1.ExecutionPayloadHeader:
 		if b.version != version.Bellatrix {
 			return fmt.Errorf("wrong state version (%s) for bellatrix execution payload header", version.String(b.version))
@@ -89,9 +78,13 @@ func (b *BeaconState) SetLatestExecutionPayloadHeader(val interfaces.ExecutionDa
 		return nil
 	case *enginev1.ExecutionPayloadHeaderGloas:
 		if !(b.version >= version.Gloas) {
-			return fmt.Errorf("wrong state version (%s) for gloas execution payload header", version.String(b.version))
+			return fmt.Errorf("wrong state version (%s) for gloas execution payload", version.String(b.version))
 		}
-		b.latestExecutionPayloadHeaderGloas = header
+		latest, err := consensusblocks.PayloadToHeaderGloas(val)
+		if err != nil {
+			return errors.Wrap(err, "could not convert payload to header")
+		}
+		b.latestExecutionPayloadHeaderGloas = latest
 		b.markFieldAsDirty(types.LatestExecutionPayloadHeaderGloas)
 		return nil
 	default:

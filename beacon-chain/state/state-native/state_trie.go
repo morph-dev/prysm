@@ -776,7 +776,7 @@ func InitializeFromProtoUnsafeGloas(st *ethpb.BeaconStateGloas) (state.BeaconSta
 	for i, v := range st.ProposerLookahead {
 		proposerLookahead[i] = primitives.ValidatorIndex(v)
 	}
-	fieldCount := params.BeaconConfig().BeaconStateFuluFieldCount
+	fieldCount := params.BeaconConfig().BeaconStateGloasFieldCount
 	b := &BeaconState{
 		version:                           version.Gloas,
 		genesisTime:                       st.GenesisTime,
@@ -1071,7 +1071,7 @@ func (b *BeaconState) initializeMerkleLayers(ctx context.Context) error {
 	case version.Fulu:
 		b.dirtyFields = make(map[types.FieldIndex]bool, params.BeaconConfig().BeaconStateFuluFieldCount)
 	case version.Gloas:
-		b.dirtyFields = make(map[types.FieldIndex]bool, params.BeaconConfig().BeaconStateFuluFieldCount)
+		b.dirtyFields = make(map[types.FieldIndex]bool, params.BeaconConfig().BeaconStateGloasFieldCount)
 	default:
 		return fmt.Errorf("unknown state version (%s) when computing dirty fields in merklization", version.String(b.version))
 	}

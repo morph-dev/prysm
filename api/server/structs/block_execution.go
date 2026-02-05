@@ -155,3 +155,50 @@ type ConsolidationRequest struct {
 // ----------------------------------------------------------------------------
 // Fulu
 // ----------------------------------------------------------------------------
+
+// ----------------------------------------------------------------------------
+// Gloas
+// ----------------------------------------------------------------------------
+
+type ExecutionPayloadHeaderGloas struct {
+	ParentHash    string `json:"parent_hash"`
+	FeeRecipient  string `json:"fee_recipient"`
+	StateRoot     string `json:"state_root"`
+	ReceiptsRoot  string `json:"receipts_root"`
+	LogsBloom     string `json:"logs_bloom"`
+	PrevRandao    string `json:"prev_randao"`
+	BlockNumber   string `json:"block_number"`
+	GasLimit      string `json:"gas_limit"`
+	GasUsed       string `json:"gas_used"`
+	Timestamp     string `json:"timestamp"`
+	ExtraData     string `json:"extra_data"`
+	BaseFeePerGas string `json:"base_fee_per_gas"`
+	BlockHash     string `json:"block_hash"`
+	BlobGasUsed   string `json:"blob_gas_used"`
+	ExcessBlobGas string `json:"excess_blob_gas"`
+
+	// Transactions  []string      `json:"transactions"`
+	// Withdrawals   []*Withdrawal `json:"withdrawals"`
+	TxHash              string `json:"tx_hash"`
+	WithdrawalsRoot     string `json:"withdrawals_root"`
+	BlockAccessListHash string `json:"block_access_list_hash"`
+}
+
+type ExecutionChunkHeader struct {
+	Index               string `json:"index"`
+	ChunkAccessListHash string `json:"chunk_access_list_hash"`
+	PreChunkTxCount     string `json:"pre_chunk_tx_count"`
+	PreChunkGasUsed     string `json:"pre_chunk_gas_used"`
+	PreChunkBlobGasUsed string `json:"pre_chunk_blob_gas_used"`
+	TxsRoot             string `json:"txs_root"`
+	GasUsed             string `json:"gas_used"`
+	BlobGasUsed         string `json:"blob_gas_used"`
+	WithdrawalsRoot     string `json:"withdrawals_root"`
+}
+
+type ExecutionChunkBundle struct {
+	ChunkHeader     *ExecutionChunkHeader `json:"chunk_header"`
+	Transactions    []string              `json:"transactions"`
+	Withdrawals     []*Withdrawal         `json:"withdrawals"`
+	ChunkAccessList string                `json:"chunk_access_list"`
+}

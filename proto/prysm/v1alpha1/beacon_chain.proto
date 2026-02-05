@@ -509,6 +509,9 @@ message BeaconBlockContainer {
 
     // Representing a blinded Fulu block.
     SignedBlindedBeaconBlockFulu blinded_fulu_block = 14;
+
+    // representing a Gloas block.
+    SignedBeaconBlockGloas gloas_block = 15;
   }
 }
 

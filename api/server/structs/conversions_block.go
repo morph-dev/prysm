@@ -268,6 +268,10 @@ func SignedBeaconBlockMessageJsoner(block interfaces.ReadOnlySignedBeaconBlock) 
 		return SignedBlindedBeaconBlockFuluFromConsensus(pbStruct)
 	case *eth.SignedBeaconBlockFulu:
 		return SignedBeaconBlockFuluFromConsensus(pbStruct)
+	// case *eth.SignedBlindedBeaconBlockGloas:
+	// 	return SignedBlindedBeaconBlockGloasFromConsensus(pbStruct)
+	case *eth.SignedBeaconBlockGloas:
+		return SignedBeaconBlockGloasFromConsensus(pbStruct)
 	default:
 		return nil, ErrUnsupportedConversion
 	}
@@ -2881,6 +2885,397 @@ func SignedBeaconBlockFuluFromConsensus(b *eth.SignedBeaconBlockFulu) (*SignedBe
 		return nil, err
 	}
 	return &SignedBeaconBlockFulu{
+		Message:   block,
+		Signature: hexutil.Encode(b.Signature),
+	}, nil
+}
+
+// ----------------------------------------------------------------------------
+// Gloas
+// ----------------------------------------------------------------------------
+
+func (b *BeaconBlockGloas) ToConsensus() (*eth.BeaconBlockGloas, error) {
+	if b == nil {
+		return nil, errNilValue
+	}
+	if b.Body == nil {
+		return nil, server.NewDecodeError(errNilValue, "Body")
+	}
+	if b.Body.Eth1Data == nil {
+		return nil, server.NewDecodeError(errNilValue, "Body.Eth1Data")
+	}
+	if b.Body.SyncAggregate == nil {
+		return nil, server.NewDecodeError(errNilValue, "Body.SyncAggregate")
+	}
+	if b.Body.ExecutionPayloadHeader == nil {
+		return nil, server.NewDecodeError(errNilValue, "Body.ExecutionPayload")
+	}
+	if b.Body.ExecutionRequests == nil {
+		return nil, server.NewDecodeError(errNilValue, "Body.ExecutionRequests")
+	}
+
+	slot, err := strconv.ParseUint(b.Slot, 10, 64)
+	if err != nil {
+		return nil, server.NewDecodeError(err, "Slot")
+	}
+	proposerIndex, err := strconv.ParseUint(b.ProposerIndex, 10, 64)
+	if err != nil {
+		return nil, server.NewDecodeError(err, "ProposerIndex")
+	}
+	parentRoot, err := bytesutil.DecodeHexWithLength(b.ParentRoot, fieldparams.RootLength)
+	if err != nil {
+		return nil, server.NewDecodeError(err, "ParentRoot")
+	}
+	stateRoot, err := bytesutil.DecodeHexWithLength(b.StateRoot, fieldparams.RootLength)
+	if err != nil {
+		return nil, server.NewDecodeError(err, "StateRoot")
+	}
+	randaoReveal, err := bytesutil.DecodeHexWithLength(b.Body.RandaoReveal, fieldparams.BLSSignatureLength)
+	if err != nil {
+		return nil, server.NewDecodeError(err, "Body.RandaoReveal")
+	}
+	depositRoot, err := bytesutil.DecodeHexWithLength(b.Body.Eth1Data.DepositRoot, fieldparams.RootLength)
+	if err != nil {
+		return nil, server.NewDecodeError(err, "Body.Eth1Data.DepositRoot")
+	}
+	depositCount, err := strconv.ParseUint(b.Body.Eth1Data.DepositCount, 10, 64)
+	if err != nil {
+		return nil, server.NewDecodeError(err, "Body.Eth1Data.DepositCount")
+	}
+	blockHash, err := bytesutil.DecodeHexWithLength(b.Body.Eth1Data.BlockHash, common.HashLength)
+	if err != nil {
+		return nil, server.NewDecodeError(err, "Body.Eth1Data.BlockHash")
+	}
+	graffiti, err := bytesutil.DecodeHexWithLength(b.Body.Graffiti, fieldparams.RootLength)
+	if err != nil {
+		return nil, server.NewDecodeError(err, "Body.Graffiti")
+	}
+	proposerSlashings, err := ProposerSlashingsToConsensus(b.Body.ProposerSlashings)
+	if err != nil {
+		return nil, server.NewDecodeError(err, "Body.ProposerSlashings")
+	}
+	attesterSlashings, err := AttesterSlashingsElectraToConsensus(b.Body.AttesterSlashings)
+	if err != nil {
+		return nil, server.NewDecodeError(err, "Body.AttesterSlashings")
+	}
+	atts, err := AttsElectraToConsensus(b.Body.Attestations)
+	if err != nil {
+		return nil, server.NewDecodeError(err, "Body.Attestations")
+	}
+	deposits, err := DepositsToConsensus(b.Body.Deposits)
+	if err != nil {
+		return nil, server.NewDecodeError(err, "Body.Deposits")
+	}
+	exits, err := SignedExitsToConsensus(b.Body.VoluntaryExits)
+	if err != nil {
+		return nil, server.NewDecodeError(err, "Body.VoluntaryExits")
+	}
+	syncCommitteeBits, err := bytesutil.DecodeHexWithLength(b.Body.SyncAggregate.SyncCommitteeBits, fieldparams.SyncAggregateSyncCommitteeBytesLength)
+	if err != nil {
+		return nil, server.NewDecodeError(err, "Body.SyncAggregate.SyncCommitteeBits")
+	}
+	syncCommitteeSig, err := bytesutil.DecodeHexWithLength(b.Body.SyncAggregate.SyncCommitteeSignature, fieldparams.BLSSignatureLength)
+	if err != nil {
+		return nil, server.NewDecodeError(err, "Body.SyncAggregate.SyncCommitteeSignature")
+	}
+
+	payloadHeader, err := b.Body.ExecutionPayloadHeader.ToConsensus()
+	if err != nil {
+		return nil, server.NewDecodeError(err, "Body.ExecutionPayload")
+	}
+
+	blsChanges, err := SignedBLSChangesToConsensus(b.Body.BLSToExecutionChanges)
+	if err != nil {
+		return nil, server.NewDecodeError(err, "Body.BLSToExecutionChanges")
+	}
+	err = slice.VerifyMaxLength(b.Body.BlobKzgCommitments, fieldparams.MaxBlobCommitmentsPerBlock)
+	if err != nil {
+		return nil, server.NewDecodeError(err, "Body.BlobKzgCommitments")
+	}
+	blobKzgCommitments := make([][]byte, len(b.Body.BlobKzgCommitments))
+	for i, b := range b.Body.BlobKzgCommitments {
+		kzg, err := bytesutil.DecodeHexWithLength(b, fieldparams.BLSPubkeyLength)
+		if err != nil {
+			return nil, server.NewDecodeError(err, fmt.Sprintf("Body.BlobKzgCommitments[%d]", i))
+		}
+		blobKzgCommitments[i] = kzg
+	}
+
+	requests, err := b.Body.ExecutionRequests.ToConsensus()
+	if err != nil {
+		return nil, server.NewDecodeError(err, "Body.ExecutionRequests")
+	}
+
+	chunkHeadersRoot, err := bytesutil.DecodeHexWithLength(b.Body.ChunkHeadersRoot, common.HashLength)
+	if err != nil {
+		return nil, server.NewDecodeError(err, "Body.ChunkHeadersRoot")
+	}
+	chunkAccessListsRoot, err := bytesutil.DecodeHexWithLength(b.Body.ChunkAccessListsRoot, common.HashLength)
+	if err != nil {
+		return nil, server.NewDecodeError(err, "Body.ChunkAccessListsRoot")
+	}
+
+	return &eth.BeaconBlockGloas{
+		Slot:          primitives.Slot(slot),
+		ProposerIndex: primitives.ValidatorIndex(proposerIndex),
+		ParentRoot:    parentRoot,
+		StateRoot:     stateRoot,
+		Body: &eth.BeaconBlockBodyGloas{
+			RandaoReveal: randaoReveal,
+			Eth1Data: &eth.Eth1Data{
+				DepositRoot:  depositRoot,
+				DepositCount: depositCount,
+				BlockHash:    blockHash,
+			},
+			Graffiti:          graffiti,
+			ProposerSlashings: proposerSlashings,
+			AttesterSlashings: attesterSlashings,
+			Attestations:      atts,
+			Deposits:          deposits,
+			VoluntaryExits:    exits,
+			SyncAggregate: &eth.SyncAggregate{
+				SyncCommitteeBits:      syncCommitteeBits,
+				SyncCommitteeSignature: syncCommitteeSig,
+			},
+			ExecutionPayloadHeader: payloadHeader,
+			BlsToExecutionChanges:  blsChanges,
+			BlobKzgCommitments:     blobKzgCommitments,
+			ExecutionRequests:      requests,
+			ChunkHeadersRoot:       chunkHeadersRoot,
+			ChunkAccessListsRoot:   chunkAccessListsRoot,
+		},
+	}, nil
+}
+
+func (b *SignedBeaconBlockContentsGloas) ToGeneric() (*eth.GenericSignedBeaconBlock, error) {
+	if b == nil {
+		return nil, errNilValue
+	}
+
+	signedGloasBlock, err := b.SignedBlock.ToConsensus()
+	if err != nil {
+		return nil, server.NewDecodeError(err, "SignedBlock")
+	}
+
+	// TODO(EIP-8101): Figure out if needed
+	// proofs := make([][]byte, len(b.KzgProofs))
+	// for i, proof := range b.KzgProofs {
+	// 	proofs[i], err = bytesutil.DecodeHexWithLength(proof, fieldparams.BLSPubkeyLength)
+	// 	if err != nil {
+	// 		return nil, server.NewDecodeError(err, fmt.Sprintf("KzgProofs[%d]", i))
+	// 	}
+	// }
+	// blbs := make([][]byte, len(b.Blobs))
+	// for i, blob := range b.Blobs {
+	// 	blbs[i], err = bytesutil.DecodeHexWithLength(blob, fieldparams.BlobLength)
+	// 	if err != nil {
+	// 		return nil, server.NewDecodeError(err, fmt.Sprintf("Blobs[%d]", i))
+	// 	}
+	// }
+	// chunks := make([]*enginev1.ExecutionChunkBundle, len(b.Chunks))
+	// for i, chunk := range b.Chunks {
+	// 	chunks[i], err = chunk.ToConsensus()
+	// 	if err != nil {
+	// 		return nil, server.NewDecodeError(err, fmt.Sprintf("Chunks[%d]", i))
+	// 	}
+	// }
+
+	// blk := &eth.SignedBeaconBlockContentsGloas{
+	// 	Block:     signedGloasBlock,
+	// 	KzgProofs: proofs,
+	// 	Blobs:     blbs,
+	// 	Chunks:    chunks,
+	// }
+	// return &eth.GenericSignedBeaconBlock{Block: &eth.GenericSignedBeaconBlock_Gloas{Gloas: blk.Block}}, nil
+
+	return &eth.GenericSignedBeaconBlock{Block: &eth.GenericSignedBeaconBlock_Gloas{Gloas: signedGloasBlock}}, nil
+}
+
+func (b *SignedBeaconBlockContentsGloas) ToUnsigned() *BeaconBlockContentsGloas {
+	return &BeaconBlockContentsGloas{
+		Block:     b.SignedBlock.Message,
+		KzgProofs: b.KzgProofs,
+		Blobs:     b.Blobs,
+		Chunks:    b.Chunks,
+	}
+}
+
+func (b *BeaconBlockContentsGloas) ToGeneric() (*eth.GenericBeaconBlock, error) {
+	block, err := b.ToConsensus()
+	if err != nil {
+		return nil, err
+	}
+
+	return &eth.GenericBeaconBlock{Block: &eth.GenericBeaconBlock_Gloas{Gloas: block}}, nil
+}
+
+func (b *BeaconBlockContentsGloas) ToConsensus() (*eth.BeaconBlockContentsGloas, error) {
+	if b == nil {
+		return nil, errNilValue
+	}
+
+	gloasBlock, err := b.Block.ToConsensus()
+	if err != nil {
+		return nil, server.NewDecodeError(err, "Block")
+	}
+	proofs := make([][]byte, len(b.KzgProofs))
+	for i, proof := range b.KzgProofs {
+		proofs[i], err = bytesutil.DecodeHexWithLength(proof, fieldparams.BLSPubkeyLength)
+		if err != nil {
+			return nil, server.NewDecodeError(err, fmt.Sprintf("KzgProofs[%d]", i))
+		}
+	}
+	blbs := make([][]byte, len(b.Blobs))
+	for i, blob := range b.Blobs {
+		blbs[i], err = bytesutil.DecodeHexWithLength(blob, fieldparams.BlobLength)
+		if err != nil {
+			return nil, server.NewDecodeError(err, fmt.Sprintf("Blobs[%d]", i))
+		}
+	}
+	chunks := make([]*enginev1.ExecutionChunkBundle, len(b.Chunks))
+	for i, chunk := range b.Chunks {
+		chunks[i], err = chunk.ToConsensus()
+		if err != nil {
+			return nil, server.NewDecodeError(err, fmt.Sprintf("Chunks[%d]", i))
+		}
+	}
+
+	return &eth.BeaconBlockContentsGloas{
+		Block:     gloasBlock,
+		KzgProofs: proofs,
+		Blobs:     blbs,
+		Chunks:    chunks,
+	}, nil
+}
+
+func (b *SignedBeaconBlockGloas) ToConsensus() (*eth.SignedBeaconBlockGloas, error) {
+	if b == nil {
+		return nil, errNilValue
+	}
+
+	sig, err := bytesutil.DecodeHexWithLength(b.Signature, fieldparams.BLSSignatureLength)
+	if err != nil {
+		return nil, server.NewDecodeError(err, "Signature")
+	}
+	block, err := b.Message.ToConsensus()
+	if err != nil {
+		return nil, server.NewDecodeError(err, "Message")
+	}
+	return &eth.SignedBeaconBlockGloas{
+		Block:     block,
+		Signature: sig,
+	}, nil
+}
+
+func BeaconBlockContentsGloasFromConsensus(b *eth.BeaconBlockContentsGloas) (*BeaconBlockContentsGloas, error) {
+	block, err := BeaconBlockGloasFromConsensus(b.Block)
+	if err != nil {
+		return nil, err
+	}
+
+	proofs := make([]string, len(b.KzgProofs))
+	for i, proof := range b.KzgProofs {
+		proofs[i] = hexutil.Encode(proof)
+	}
+
+	blbs := make([]string, len(b.Blobs))
+	for i, blob := range b.Blobs {
+		blbs[i] = hexutil.Encode(blob)
+	}
+
+	chunks := make([]*ExecutionChunkBundle, len(b.Chunks))
+	for i, chunk := range b.Chunks {
+		chunks[i], err = ExecutionChunkBundleFromConsensus(chunk)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return &BeaconBlockContentsGloas{
+		Block:     block,
+		KzgProofs: proofs,
+		Blobs:     blbs,
+		Chunks:    chunks,
+	}, nil
+}
+
+func SignedBeaconBlockContentsGloasFromConsensus(b *eth.SignedBeaconBlockContentsGloas) (*SignedBeaconBlockContentsGloas, error) {
+	block, err := SignedBeaconBlockGloasFromConsensus(b.Block)
+	if err != nil {
+		return nil, err
+	}
+
+	proofs := make([]string, len(b.KzgProofs))
+	for i, proof := range b.KzgProofs {
+		proofs[i] = hexutil.Encode(proof)
+	}
+
+	blbs := make([]string, len(b.Blobs))
+	for i, blob := range b.Blobs {
+		blbs[i] = hexutil.Encode(blob)
+	}
+
+	chunks := make([]*ExecutionChunkBundle, len(b.Chunks))
+	for i, chunk := range b.Chunks {
+		chunks[i], err = ExecutionChunkBundleFromConsensus(chunk)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return &SignedBeaconBlockContentsGloas{
+		SignedBlock: block,
+		KzgProofs:   proofs,
+		Blobs:       blbs,
+		Chunks:      chunks,
+	}, nil
+}
+
+func BeaconBlockGloasFromConsensus(b *eth.BeaconBlockGloas) (*BeaconBlockGloas, error) {
+	payload, err := ExecutionPayloadHeaderGloasFromConsensus(b.Body.ExecutionPayloadHeader)
+	if err != nil {
+		return nil, err
+	}
+
+	blobKzgCommitments := make([]string, len(b.Body.BlobKzgCommitments))
+	for i := range b.Body.BlobKzgCommitments {
+		blobKzgCommitments[i] = hexutil.Encode(b.Body.BlobKzgCommitments[i])
+	}
+
+	return &BeaconBlockGloas{
+		Slot:          fmt.Sprintf("%d", b.Slot),
+		ProposerIndex: fmt.Sprintf("%d", b.ProposerIndex),
+		ParentRoot:    hexutil.Encode(b.ParentRoot),
+		StateRoot:     hexutil.Encode(b.StateRoot),
+		Body: &BeaconBlockBodyGloas{
+			RandaoReveal:      hexutil.Encode(b.Body.RandaoReveal),
+			Eth1Data:          Eth1DataFromConsensus(b.Body.Eth1Data),
+			Graffiti:          hexutil.Encode(b.Body.Graffiti),
+			ProposerSlashings: ProposerSlashingsFromConsensus(b.Body.ProposerSlashings),
+			AttesterSlashings: AttesterSlashingsElectraFromConsensus(b.Body.AttesterSlashings),
+			Attestations:      AttsElectraFromConsensus(b.Body.Attestations),
+			Deposits:          DepositsFromConsensus(b.Body.Deposits),
+			VoluntaryExits:    SignedExitsFromConsensus(b.Body.VoluntaryExits),
+			SyncAggregate: &SyncAggregate{
+				SyncCommitteeBits:      hexutil.Encode(b.Body.SyncAggregate.SyncCommitteeBits),
+				SyncCommitteeSignature: hexutil.Encode(b.Body.SyncAggregate.SyncCommitteeSignature),
+			},
+			ExecutionPayloadHeader: payload,
+			BLSToExecutionChanges:  SignedBLSChangesFromConsensus(b.Body.BlsToExecutionChanges),
+			BlobKzgCommitments:     blobKzgCommitments,
+			ExecutionRequests:      ExecutionRequestsFromConsensus(b.Body.ExecutionRequests),
+			ChunkHeadersRoot:       hexutil.Encode(b.Body.ChunkHeadersRoot),
+			ChunkAccessListsRoot:   hexutil.Encode(b.Body.ChunkAccessListsRoot),
+		},
+	}, nil
+}
+
+func SignedBeaconBlockGloasFromConsensus(b *eth.SignedBeaconBlockGloas) (*SignedBeaconBlockGloas, error) {
+	block, err := BeaconBlockGloasFromConsensus(b.Block)
+	if err != nil {
+		return nil, err
+	}
+	return &SignedBeaconBlockGloas{
 		Message:   block,
 		Signature: hexutil.Encode(b.Signature),
 	}, nil

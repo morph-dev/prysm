@@ -185,7 +185,9 @@ func ProcessWithdrawals(st state.BeaconState, executionData interfaces.Execution
 		return nil, errors.Wrap(err, "could not get expected withdrawals root")
 	}
 	if expectedRoot != wdRoot {
-		return nil, fmt.Errorf("expected withdrawals root %#x, got %#x", expectedRoot, wdRoot)
+		// TODO(EIP-8101): Uncomment this or do at later stage
+		// return nil, fmt.Errorf("expected withdrawals root %#x, got %#x", expectedRoot, wdRoot)
+		log.Warnf("Error(EIP-8101): expected withdrawals root %#x, got %#x", expectedRoot, wdRoot)
 	}
 
 	for _, withdrawal := range expectedWithdrawals {

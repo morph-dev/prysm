@@ -208,7 +208,7 @@ func NewGenesisBlockForState(ctx context.Context, st state.BeaconState) (interfa
 						SyncCommitteeBits:      make([]byte, fieldparams.SyncCommitteeLength/8),
 						SyncCommitteeSignature: make([]byte, fieldparams.BLSSignatureLength),
 					},
-					ExecutionPayload: &enginev1.ExecutionPayloadGloas{
+					ExecutionPayloadHeader: &enginev1.ExecutionPayloadHeaderGloas{
 						ParentHash:    make([]byte, 32),
 						FeeRecipient:  make([]byte, 20),
 						StateRoot:     make([]byte, 32),
@@ -230,6 +230,8 @@ func NewGenesisBlockForState(ctx context.Context, st state.BeaconState) (interfa
 						Deposits:       make([]*enginev1.DepositRequest, 0),
 						Consolidations: make([]*enginev1.ConsolidationRequest, 0),
 					},
+					ChunkHeadersRoot:     make([]byte, 32),
+					ChunkAccessListsRoot: make([]byte, 32),
 				},
 			},
 			Signature: params.BeaconConfig().EmptySignature[:],

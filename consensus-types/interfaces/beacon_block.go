@@ -69,6 +69,8 @@ type ReadOnlyBeaconBlockBody interface {
 	BLSToExecutionChanges() ([]*ethpb.SignedBLSToExecutionChange, error)
 	BlobKzgCommitments() ([][]byte, error)
 	ExecutionRequests() (*enginev1.ExecutionRequests, error)
+	ChunkHeadersRoot() ([field_params.RootLength]byte, error)
+	ChunkAccessListsRoot() ([field_params.RootLength]byte, error)
 }
 
 type SignedBeaconBlock interface {
@@ -122,4 +124,6 @@ type ExecutionData interface {
 	TransactionsRoot() ([]byte, error)
 	Withdrawals() ([]*enginev1.Withdrawal, error)
 	WithdrawalsRoot() ([]byte, error)
+	BlockAccessList() ([]byte, error)
+	BlockAccessListHash() ([]byte, error)
 }

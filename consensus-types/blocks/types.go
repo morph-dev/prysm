@@ -57,6 +57,8 @@ type BeaconBlockBody struct {
 	blsToExecutionChanges    []*eth.SignedBLSToExecutionChange
 	blobKzgCommitments       [][]byte
 	executionRequests        *enginev1.ExecutionRequests
+	chunkHeadersRoot         [field_params.RootLength]byte
+	chunkAccessListsRoot     [field_params.RootLength]byte
 }
 
 var _ interfaces.ReadOnlyBeaconBlockBody = &BeaconBlockBody{}

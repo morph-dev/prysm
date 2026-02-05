@@ -283,6 +283,14 @@ func (b *BeaconBlockBody) Version() int {
 	panic("implement me")
 }
 
+func (b *BeaconBlockBody) ChunkHeadersRoot() ([field_params.RootLength]byte, error) {
+	panic("implement me")
+}
+
+func (b *BeaconBlockBody) ChunkAccessListsRoot() ([field_params.RootLength]byte, error) {
+	panic("implement me")
+}
+
 var _ interfaces.ReadOnlySignedBeaconBlock = &SignedBeaconBlock{}
 var _ interfaces.ReadOnlyBeaconBlock = &BeaconBlock{}
 var _ interfaces.ReadOnlyBeaconBlockBody = &BeaconBlockBody{}

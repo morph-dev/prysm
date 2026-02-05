@@ -187,7 +187,7 @@ func (s *Service) NewPayload(ctx context.Context, payload interfaces.ExecutionDa
 				return nil, handleRPCError(err)
 			}
 		}
-	case *pb.ExecutionPayloadGloas:
+	case *pb.ExecutionPayloadHeaderGloas:
 		if executionRequests == nil {
 			return nil, errors.New("execution requests are required for gloas execution payload")
 		}

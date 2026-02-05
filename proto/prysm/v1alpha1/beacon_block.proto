@@ -73,8 +73,9 @@ message GenericSignedBeaconBlock {
 
     // Representing a signed, post-Fulu fork blinded beacon block.
     SignedBlindedBeaconBlockFulu blinded_fulu = 12;
+  
     // Representing a signed, post-Gloas fork beacon block content.
-    SignedBeaconBlockContentsGloas gloas = 13;
+    SignedBeaconBlockGloas gloas = 13;
   }
   bool is_blinded = 100;
   reserved 101; // Deprecated fields
@@ -1147,7 +1148,7 @@ message BeaconBlockBodyGloas {
   SyncAggregate sync_aggregate = 9;
   // Execution payload from the execution chain. New in Gloas network
   // upgrade.
-  ethereum.engine.v1.ExecutionPayloadGloas execution_payload = 10;
+  ethereum.engine.v1.ExecutionPayloadHeaderGloas execution_payload_header = 10;
   // At most MAX_BLS_TO_EXECUTION_CHANGES. New in Capella network upgrade.
   repeated SignedBLSToExecutionChange bls_to_execution_changes = 11
       [ (ethereum.eth.ext.ssz_max) = "16" ];

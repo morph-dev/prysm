@@ -207,6 +207,9 @@ func processBlockJSONResponse(ver string, isBlinded bool, decoder *json.Decoder)
 	case version.String(version.Fulu):
 		return processFuluBlock(decoder, isBlinded)
 
+	case version.String(version.Gloas):
+		return processGloasBlock(decoder)
+
 	default:
 		return nil, errors.Errorf("unsupported consensus version `%s`", ver)
 	}
@@ -245,4 +248,8 @@ func processFuluBlock(decoder *json.Decoder, isBlinded bool) (*ethpb.GenericBeac
 		return convertBlockToGeneric(decoder, &structs.BlindedBeaconBlockFulu{}, "fulu", true)
 	}
 	return convertBlockToGeneric(decoder, &structs.BeaconBlockContentsFulu{}, "fulu", false)
+}
+
+func processGloasBlock(decoder *json.Decoder) (*ethpb.GenericBeaconBlock, error) {
+	return convertBlockToGeneric(decoder, &structs.BeaconBlockContentsGloas{}, "gloas", false)
 }

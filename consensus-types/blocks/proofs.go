@@ -45,7 +45,7 @@ func ComputeBlockBodyFieldRoots(ctx context.Context, blockBody *BeaconBlockBody)
 	case version.Fulu:
 		fieldRoots = make([][]byte, 13)
 	case version.Gloas:
-		fieldRoots = make([][]byte, 13)
+		fieldRoots = make([][]byte, 15)
 	default:
 		return nil, fmt.Errorf("unknown block body version %s", version.String(blockBody.version))
 	}
@@ -193,6 +193,22 @@ func ComputeBlockBodyFieldRoots(ctx context.Context, blockBody *BeaconBlockBody)
 			return nil, err
 		}
 		copy(fieldRoots[12], root[:])
+	}
+
+	if blockBody.version >= version.Gloas {
+		// Chunk Headers Root
+		chunkHeadersRoot, err := blockBody.ChunkHeadersRoot()
+		if err != nil {
+			return nil, err
+		}
+		copy(fieldRoots[13], chunkHeadersRoot[:])
+
+		// Chunk Access Lists Root
+		chunkAccessListsRoot, err := blockBody.ChunkAccessListsRoot()
+		if err != nil {
+			return nil, err
+		}
+		copy(fieldRoots[14], chunkAccessListsRoot[:])
 	}
 	return fieldRoots, nil
 }

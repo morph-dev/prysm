@@ -334,20 +334,20 @@ func (s *Service) registerSubscribers(nse params.NetworkScheduleEntry) bool {
 	// New gossip topic in Gloas.
 	if params.BeaconConfig().GloasForkEpoch <= nse.Epoch {
 		s.spawn(func() {
-			s.subscribeWithParameters(subscribeParameters{
-				topicFormat:              p2p.ExecutionChunkTopicFormat,
-				validate:                 s.validateExecutionChunk,
-				handle:                   s.executionChunkSubscriber,
-				nse:                      nse,
-			})
+			s.subscribe(
+				p2p.ExecutionChunkTopicFormat,
+				s.validateExecutionChunk,
+				s.executionChunkSubscriber,
+				nse,
+			)
 		})
 		s.spawn(func() {
-			s.subscribeWithParameters(subscribeParameters{
-				topicFormat:              p2p.ChunkAccessListTopicFormat,
-				validate:                 s.validateChunkAccessList,
-				handle:                   s.chunkAccessListSubscriber,
-				nse:                      nse,
-			})
+			s.subscribe(
+				p2p.ChunkAccessListTopicFormat,
+				s.validateChunkAccessList,
+				s.chunkAccessListSubscriber,
+				nse,
+			)
 		})
 	}
 	return true

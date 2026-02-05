@@ -314,11 +314,11 @@ type GetPayloadV5ResponseJson struct {
 }
 
 type GetPayloadV6ResponseJson struct {
-	ExecutionPayload      *ExecutionPayloadGloasJSON `json:"executionPayload"`
-	BlockValue            string                     `json:"blockValue"`
-	BlobsBundle           *BlobBundleV2JSON          `json:"blobsBundle"`
-	ShouldOverrideBuilder bool                       `json:"shouldOverrideBuilder"`
-	ExecutionRequests     []hexutil.Bytes            `json:"executionRequests"`
+	ExecutionPayload      *ExecutionPayloadHeaderGloasJSON `json:"executionPayload"`
+	BlockValue            string                           `json:"blockValue"`
+	BlobsBundle           *BlobBundleV2JSON                `json:"blobsBundle"`
+	ShouldOverrideBuilder bool                             `json:"shouldOverrideBuilder"`
+	ExecutionRequests     []hexutil.Bytes                  `json:"executionRequests"`
 	// EIP-8101
 	Chunks []*ExecutionChunkBundle `json:"chunks"`
 }
@@ -352,7 +352,7 @@ type ExecutionPayloadDenebJSON struct {
 	Withdrawals   []*Withdrawal   `json:"withdrawals"`
 }
 
-type ExecutionPayloadGloasJSON struct {
+type ExecutionPayloadHeaderGloasJSON struct {
 	ParentHash    *common.Hash    `json:"parentHash"`
 	FeeRecipient  *common.Address `json:"feeRecipient"`
 	StateRoot     *common.Hash    `json:"stateRoot"`
@@ -369,7 +369,7 @@ type ExecutionPayloadGloasJSON struct {
 	ExcessBlobGas *hexutil.Uint64 `json:"excessBlobGas"`
 	BlockHash     *common.Hash    `json:"blockHash"`
 	// EIP-8101
-	TxHash              *common.Hash `json:"txash"`
+	TxHash              *common.Hash `json:"txHash"`
 	WithdrawalsRoot     *common.Hash `json:"withdrawalsRoot"`
 	BlockAccessListHash *common.Hash `json:"blockAccessListHash"`
 }
@@ -944,7 +944,7 @@ func (e *ExecutionPayloadDeneb) MarshalJSON() ([]byte, error) {
 	})
 }
 
-func (e *ExecutionPayloadGloas) MarshalJSON() ([]byte, error) {
+func (e *ExecutionPayloadHeaderGloas) MarshalJSON() ([]byte, error) {
 	baseFee := new(big.Int).SetBytes(bytesutil.ReverseByteOrder(e.BaseFeePerGas))
 	baseFeeHex := hexutil.EncodeBig(baseFee)
 	pHash := common.BytesToHash(e.ParentHash)
@@ -966,7 +966,7 @@ func (e *ExecutionPayloadGloas) MarshalJSON() ([]byte, error) {
 	withdrawalsRoot := common.BytesToHash(e.WithdrawalsRoot)
 	blockAccessListHash := common.BytesToHash(e.BlockAccessListHash)
 
-	return json.Marshal(ExecutionPayloadGloasJSON{
+	return json.Marshal(ExecutionPayloadHeaderGloasJSON{
 		ParentHash:          &pHash,
 		FeeRecipient:        &recipient,
 		StateRoot:           &sRoot,
@@ -1543,7 +1543,7 @@ func (e *ExecutionBundleGloas) UnmarshalJSON(enc []byte) error {
 		return errors.New("missing required field 'blockAccessListHash' for ExecutionPayload")
 	}
 
-	*e = ExecutionBundleGloas{Payload: &ExecutionPayloadGloas{}}
+	*e = ExecutionBundleGloas{Payload: &ExecutionPayloadHeaderGloas{}}
 	e.Payload.ParentHash = dec.ExecutionPayload.ParentHash.Bytes()
 	e.Payload.FeeRecipient = dec.ExecutionPayload.FeeRecipient.Bytes()
 	e.Payload.StateRoot = dec.ExecutionPayload.StateRoot.Bytes()
@@ -1567,6 +1567,7 @@ func (e *ExecutionBundleGloas) UnmarshalJSON(enc []byte) error {
 	e.Payload.BlockHash = dec.ExecutionPayload.BlockHash.Bytes()
 
 	// EIP-8101
+	// TODO(EIP-8101): EL uses merkle root, CL uses ssz root
 	e.Payload.TxHash = dec.ExecutionPayload.TxHash.Bytes()
 	e.Payload.WithdrawalsRoot = dec.ExecutionPayload.WithdrawalsRoot.Bytes()
 	e.Payload.BlockAccessListHash = dec.ExecutionPayload.BlockAccessListHash.Bytes()

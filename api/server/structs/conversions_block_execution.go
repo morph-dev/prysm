@@ -988,3 +988,279 @@ var (
 	ExecutionPayloadHeaderFuluFromConsensus = ExecutionPayloadHeaderDenebFromConsensus
 	BeaconBlockFuluFromConsensus            = BeaconBlockElectraFromConsensus
 )
+
+// ----------------------------------------------------------------------------
+// Gloas
+// ----------------------------------------------------------------------------
+
+func ExecutionPayloadHeaderGloasFromConsensus(payload *enginev1.ExecutionPayloadHeaderGloas) (*ExecutionPayloadHeaderGloas, error) {
+	baseFeePerGas, err := sszBytesToUint256String(payload.BaseFeePerGas)
+	if err != nil {
+		return nil, err
+	}
+	return &ExecutionPayloadHeaderGloas{
+		ParentHash:          hexutil.Encode(payload.ParentHash),
+		FeeRecipient:        hexutil.Encode(payload.FeeRecipient),
+		StateRoot:           hexutil.Encode(payload.StateRoot),
+		ReceiptsRoot:        hexutil.Encode(payload.ReceiptsRoot),
+		LogsBloom:           hexutil.Encode(payload.LogsBloom),
+		PrevRandao:          hexutil.Encode(payload.PrevRandao),
+		BlockNumber:         fmt.Sprintf("%d", payload.BlockNumber),
+		GasLimit:            fmt.Sprintf("%d", payload.GasLimit),
+		GasUsed:             fmt.Sprintf("%d", payload.GasUsed),
+		Timestamp:           fmt.Sprintf("%d", payload.Timestamp),
+		ExtraData:           hexutil.Encode(payload.ExtraData),
+		BaseFeePerGas:       baseFeePerGas,
+		BlockHash:           hexutil.Encode(payload.BlockHash),
+		BlobGasUsed:         fmt.Sprintf("%d", payload.BlobGasUsed),
+		ExcessBlobGas:       fmt.Sprintf("%d", payload.ExcessBlobGas),
+		TxHash:              hexutil.Encode(payload.TxHash),
+		WithdrawalsRoot:     hexutil.Encode(payload.WithdrawalsRoot),
+		BlockAccessListHash: hexutil.Encode(payload.BlockAccessListHash),
+	}, nil
+}
+
+func (e *ExecutionPayloadHeaderGloas) ToConsensus() (*enginev1.ExecutionPayloadHeaderGloas, error) {
+	if e == nil {
+		return nil, server.NewDecodeError(errNilValue, "ExecutionPayload")
+	}
+	payloadParentHash, err := bytesutil.DecodeHexWithLength(e.ParentHash, common.HashLength)
+	if err != nil {
+		return nil, server.NewDecodeError(err, "ExecutionPayload.ParentHash")
+	}
+	payloadFeeRecipient, err := bytesutil.DecodeHexWithLength(e.FeeRecipient, fieldparams.FeeRecipientLength)
+	if err != nil {
+		return nil, server.NewDecodeError(err, "ExecutionPayload.FeeRecipient")
+	}
+	payloadStateRoot, err := bytesutil.DecodeHexWithLength(e.StateRoot, fieldparams.RootLength)
+	if err != nil {
+		return nil, server.NewDecodeError(err, "ExecutionPayload.StateRoot")
+	}
+	payloadReceiptsRoot, err := bytesutil.DecodeHexWithLength(e.ReceiptsRoot, fieldparams.RootLength)
+	if err != nil {
+		return nil, server.NewDecodeError(err, "ExecutionPayload.ReceiptsRoot")
+	}
+	payloadLogsBloom, err := bytesutil.DecodeHexWithLength(e.LogsBloom, fieldparams.LogsBloomLength)
+	if err != nil {
+		return nil, server.NewDecodeError(err, "ExecutionPayload.LogsBloom")
+	}
+	payloadPrevRandao, err := bytesutil.DecodeHexWithLength(e.PrevRandao, fieldparams.RootLength)
+	if err != nil {
+		return nil, server.NewDecodeError(err, "ExecutionPayload.PrevRandao")
+	}
+	payloadBlockNumber, err := strconv.ParseUint(e.BlockNumber, 10, 64)
+	if err != nil {
+		return nil, server.NewDecodeError(err, "ExecutionPayload.BlockNumber")
+	}
+	payloadGasLimit, err := strconv.ParseUint(e.GasLimit, 10, 64)
+	if err != nil {
+		return nil, server.NewDecodeError(err, "ExecutionPayload.GasLimit")
+	}
+	payloadGasUsed, err := strconv.ParseUint(e.GasUsed, 10, 64)
+	if err != nil {
+		return nil, server.NewDecodeError(err, "ExecutionPayload.GasUsed")
+	}
+	payloadTimestamp, err := strconv.ParseUint(e.Timestamp, 10, 64)
+	if err != nil {
+		return nil, server.NewDecodeError(err, "ExecutionPayloadHeader.Timestamp")
+	}
+	payloadExtraData, err := bytesutil.DecodeHexWithMaxLength(e.ExtraData, fieldparams.RootLength)
+	if err != nil {
+		return nil, server.NewDecodeError(err, "ExecutionPayload.ExtraData")
+	}
+	payloadBaseFeePerGas, err := bytesutil.Uint256ToSSZBytes(e.BaseFeePerGas)
+	if err != nil {
+		return nil, server.NewDecodeError(err, "ExecutionPayload.BaseFeePerGas")
+	}
+	payloadBlockHash, err := bytesutil.DecodeHexWithLength(e.BlockHash, common.HashLength)
+	if err != nil {
+		return nil, server.NewDecodeError(err, "ExecutionPayload.BlockHash")
+	}
+	payloadBlobGasUsed, err := strconv.ParseUint(e.BlobGasUsed, 10, 64)
+	if err != nil {
+		return nil, server.NewDecodeError(err, "ExecutionPayload.BlobGasUsed")
+	}
+	payloadExcessBlobGas, err := strconv.ParseUint(e.ExcessBlobGas, 10, 64)
+	if err != nil {
+		return nil, server.NewDecodeError(err, "ExecutionPayload.ExcessBlobGas")
+	}
+	payloadTxHash, err := bytesutil.DecodeHexWithLength(e.TxHash, fieldparams.RootLength)
+	if err != nil {
+		return nil, server.NewDecodeError(err, "ExecutionPayload.TxHash")
+	}
+	payloadWithdrawalsRoot, err := bytesutil.DecodeHexWithLength(e.WithdrawalsRoot, fieldparams.RootLength)
+	if err != nil {
+		return nil, server.NewDecodeError(err, "ExecutionPayload.WithdrawalsRoot")
+	}
+	payloadBlockAccessListHash, err := bytesutil.DecodeHexWithLength(e.BlockAccessListHash, fieldparams.RootLength)
+	if err != nil {
+		return nil, server.NewDecodeError(err, "ExecutionPayload.BlockAccessListHash")
+	}
+	return &enginev1.ExecutionPayloadHeaderGloas{
+		ParentHash:          payloadParentHash,
+		FeeRecipient:        payloadFeeRecipient,
+		StateRoot:           payloadStateRoot,
+		ReceiptsRoot:        payloadReceiptsRoot,
+		LogsBloom:           payloadLogsBloom,
+		PrevRandao:          payloadPrevRandao,
+		BlockNumber:         payloadBlockNumber,
+		GasLimit:            payloadGasLimit,
+		GasUsed:             payloadGasUsed,
+		Timestamp:           payloadTimestamp,
+		ExtraData:           payloadExtraData,
+		BaseFeePerGas:       payloadBaseFeePerGas,
+		BlockHash:           payloadBlockHash,
+		BlobGasUsed:         payloadBlobGasUsed,
+		ExcessBlobGas:       payloadExcessBlobGas,
+		TxHash:              payloadTxHash,
+		WithdrawalsRoot:     payloadWithdrawalsRoot,
+		BlockAccessListHash: payloadBlockAccessListHash,
+	}, nil
+}
+
+func ExecutionChunkHeaderFromConsensus(header *enginev1.ExecutionChunkHeader) (*ExecutionChunkHeader, error) {
+	if header == nil {
+		return nil, fmt.Errorf("ExecutionChunkHeader is nil")
+	}
+	return &ExecutionChunkHeader{
+		Index:               fmt.Sprintf("%d", header.Index),
+		ChunkAccessListHash: hexutil.Encode(header.ChunkAccessListHash),
+		PreChunkTxCount:     fmt.Sprintf("%d", header.PreChunkTxCount),
+		PreChunkGasUsed:     fmt.Sprintf("%d", header.PreChunkGasUsed),
+		PreChunkBlobGasUsed: fmt.Sprintf("%d", header.PreChunkBlobGasUsed),
+		TxsRoot:             hexutil.Encode(header.TxsRoot),
+		GasUsed:             fmt.Sprintf("%d", header.GasUsed),
+		BlobGasUsed:         fmt.Sprintf("%d", header.BlobGasUsed),
+		WithdrawalsRoot:     hexutil.Encode(header.WithdrawalsRoot),
+	}, nil
+}
+
+func (h *ExecutionChunkHeader) ToConsensus() (*enginev1.ExecutionChunkHeader, error) {
+	if h == nil {
+		return nil, server.NewDecodeError(errNilValue, "ExecutionChunkHeader")
+	}
+	index, err := strconv.ParseUint(h.Index, 10, 64)
+	if err != nil {
+		return nil, server.NewDecodeError(err, "ExecutionChunkHeader.Index")
+	}
+	chunkAccessListHash, err := bytesutil.DecodeHexWithLength(h.ChunkAccessListHash, common.HashLength)
+	if err != nil {
+		return nil, server.NewDecodeError(err, "ExecutionChunkHeader.ChunkAccessListHash")
+	}
+	preChunkTxCount, err := strconv.ParseUint(h.PreChunkTxCount, 10, 64)
+	if err != nil {
+		return nil, server.NewDecodeError(err, "ExecutionChunkHeader.PreChunkTxCount")
+	}
+	preChunkGasUsed, err := strconv.ParseUint(h.PreChunkGasUsed, 10, 64)
+	if err != nil {
+		return nil, server.NewDecodeError(err, "ExecutionChunkHeader.PreChunkGasUsed")
+	}
+	preChunkBlobGasUsed, err := strconv.ParseUint(h.PreChunkBlobGasUsed, 10, 64)
+	if err != nil {
+		return nil, server.NewDecodeError(err, "ExecutionChunkHeader.PreChunkBlobGasUsed")
+	}
+	txsRoot, err := bytesutil.DecodeHexWithLength(h.TxsRoot, common.HashLength)
+	if err != nil {
+		return nil, server.NewDecodeError(err, "ExecutionChunkHeader.TxsRoot")
+	}
+	gasUsed, err := strconv.ParseUint(h.GasUsed, 10, 64)
+	if err != nil {
+		return nil, server.NewDecodeError(err, "ExecutionChunkHeader.GasUsed")
+	}
+	blobGasUsed, err := strconv.ParseUint(h.BlobGasUsed, 10, 64)
+	if err != nil {
+		return nil, server.NewDecodeError(err, "ExecutionChunkHeader.BlobGasUsed")
+	}
+	withdrawalsRoot, err := bytesutil.DecodeHexWithLength(h.WithdrawalsRoot, common.HashLength)
+	if err != nil {
+		return nil, server.NewDecodeError(err, "ExecutionChunkHeader.WithdrawalsRoot")
+	}
+
+	return &enginev1.ExecutionChunkHeader{
+		Index:               index,
+		ChunkAccessListHash: chunkAccessListHash,
+		PreChunkTxCount:     preChunkTxCount,
+		PreChunkGasUsed:     preChunkGasUsed,
+		PreChunkBlobGasUsed: preChunkBlobGasUsed,
+		TxsRoot:             txsRoot,
+		GasUsed:             gasUsed,
+		BlobGasUsed:         blobGasUsed,
+		WithdrawalsRoot:     withdrawalsRoot,
+	}, nil
+}
+
+func ExecutionChunkBundleFromConsensus(chunk *enginev1.ExecutionChunkBundle) (*ExecutionChunkBundle, error) {
+	if chunk == nil {
+		return nil, fmt.Errorf("ExecutionChunkBundle is nil")
+	}
+	header, err := ExecutionChunkHeaderFromConsensus(chunk.ChunkHeader)
+	if err != nil {
+		return nil, err
+	}
+	transactions := make([]string, len(chunk.Transactions))
+	for i, tx := range chunk.Transactions {
+		transactions[i] = hexutil.Encode(tx)
+	}
+	return &ExecutionChunkBundle{
+		ChunkHeader:     header,
+		Transactions:    transactions,
+		Withdrawals:     WithdrawalsFromConsensus(chunk.Withdrawals),
+		ChunkAccessList: hexutil.Encode(chunk.ChunkAccessList),
+	}, nil
+}
+
+func (c *ExecutionChunkBundle) ToConsensus() (*enginev1.ExecutionChunkBundle, error) {
+	header, err := c.ChunkHeader.ToConsensus()
+	if err != nil {
+		return nil, server.NewDecodeError(err, "ExecutionChunkBundle.ChunkHeader")
+	}
+
+	transactions := make([][]byte, len(c.Transactions))
+	for i, tx := range c.Transactions {
+		transactions[i], err = bytesutil.DecodeHexWithMaxLength(tx, fieldparams.MaxBytesPerTxLength)
+		if err != nil {
+			return nil, server.NewDecodeError(err, fmt.Sprintf("ExecutionChunkBundle.Transactions[%d]", i))
+		}
+	}
+
+	if err = slice.VerifyMaxLength(c.Withdrawals, fieldparams.MaxWithdrawalsPerPayload); err != nil {
+		return nil, server.NewDecodeError(err, "ExecutionChunkBundle.Withdrawals")
+	}
+	withdrawals := make([]*enginev1.Withdrawal, len(c.Withdrawals))
+	for i, w := range c.Withdrawals {
+		withdrawalIndex, err := strconv.ParseUint(w.WithdrawalIndex, 10, 64)
+		if err != nil {
+			return nil, server.NewDecodeError(err, fmt.Sprintf("ExecutionChunkBundle.Withdrawals[%d].WithdrawalIndex", i))
+		}
+		validatorIndex, err := strconv.ParseUint(w.ValidatorIndex, 10, 64)
+		if err != nil {
+			return nil, server.NewDecodeError(err, fmt.Sprintf("ExecutionChunkBundle.Withdrawals[%d].ValidatorIndex", i))
+		}
+		address, err := bytesutil.DecodeHexWithLength(w.ExecutionAddress, common.AddressLength)
+		if err != nil {
+			return nil, server.NewDecodeError(err, fmt.Sprintf("ExecutionChunkBundle.Withdrawals[%d].ExecutionAddress", i))
+		}
+		amount, err := strconv.ParseUint(w.Amount, 10, 64)
+		if err != nil {
+			return nil, server.NewDecodeError(err, fmt.Sprintf("ExecutionChunkBundle.Withdrawals[%d].Amount", i))
+		}
+		withdrawals[i] = &enginev1.Withdrawal{
+			Index:          withdrawalIndex,
+			ValidatorIndex: primitives.ValidatorIndex(validatorIndex),
+			Address:        address,
+			Amount:         amount,
+		}
+	}
+
+	chunkAccessList, err := bytesutil.DecodeHexWithMaxLength(c.ChunkAccessList, fieldparams.MaxBytesPerTxChunkAccessList)
+	if err != nil {
+		return nil, server.NewDecodeError(err, "ExecutionChunkBundle.ChunkAccessList")
+	}
+
+	return &enginev1.ExecutionChunkBundle{
+		ChunkHeader:     header,
+		Transactions:    transactions,
+		Withdrawals:     withdrawals,
+		ChunkAccessList: chunkAccessList,
+	}, nil
+}

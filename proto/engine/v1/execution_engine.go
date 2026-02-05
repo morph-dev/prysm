@@ -218,11 +218,11 @@ func (payload *ExecutionPayloadHeader) Copy() *ExecutionPayloadHeader {
 }
 
 // Copy -- Gloas
-func (payload *ExecutionPayloadGloas) Copy() *ExecutionPayloadGloas {
+func (payload *ExecutionPayloadHeaderGloas) Copy() *ExecutionPayloadHeaderGloas {
 	if payload == nil {
 		return nil
 	}
-	return &ExecutionPayloadGloas{
+	return &ExecutionPayloadHeaderGloas{
 		ParentHash:          bytesutil.SafeCopyBytes(payload.ParentHash),
 		FeeRecipient:        bytesutil.SafeCopyBytes(payload.FeeRecipient),
 		StateRoot:           bytesutil.SafeCopyBytes(payload.StateRoot),
