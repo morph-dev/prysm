@@ -4,6 +4,8 @@ import (
 	"github.com/pkg/errors"
 )
 
+type ExecutionChunksBundle = []*ExecutionChunkBundle
+
 func (ebe *ExecutionBundleGloas) GetDecodedExecutionRequests(limits ExecutionRequestLimits) (*ExecutionRequests, error) {
 	requests := &ExecutionRequests{}
 	var prevTypeNum *uint8

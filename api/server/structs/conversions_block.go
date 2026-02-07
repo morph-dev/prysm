@@ -3057,38 +3057,35 @@ func (b *SignedBeaconBlockContentsGloas) ToGeneric() (*eth.GenericSignedBeaconBl
 		return nil, server.NewDecodeError(err, "SignedBlock")
 	}
 
-	// TODO(EIP-8101): Figure out if needed
-	// proofs := make([][]byte, len(b.KzgProofs))
-	// for i, proof := range b.KzgProofs {
-	// 	proofs[i], err = bytesutil.DecodeHexWithLength(proof, fieldparams.BLSPubkeyLength)
-	// 	if err != nil {
-	// 		return nil, server.NewDecodeError(err, fmt.Sprintf("KzgProofs[%d]", i))
-	// 	}
-	// }
-	// blbs := make([][]byte, len(b.Blobs))
-	// for i, blob := range b.Blobs {
-	// 	blbs[i], err = bytesutil.DecodeHexWithLength(blob, fieldparams.BlobLength)
-	// 	if err != nil {
-	// 		return nil, server.NewDecodeError(err, fmt.Sprintf("Blobs[%d]", i))
-	// 	}
-	// }
-	// chunks := make([]*enginev1.ExecutionChunkBundle, len(b.Chunks))
-	// for i, chunk := range b.Chunks {
-	// 	chunks[i], err = chunk.ToConsensus()
-	// 	if err != nil {
-	// 		return nil, server.NewDecodeError(err, fmt.Sprintf("Chunks[%d]", i))
-	// 	}
-	// }
+	proofs := make([][]byte, len(b.KzgProofs))
+	for i, proof := range b.KzgProofs {
+		proofs[i], err = bytesutil.DecodeHexWithLength(proof, fieldparams.BLSPubkeyLength)
+		if err != nil {
+			return nil, server.NewDecodeError(err, fmt.Sprintf("KzgProofs[%d]", i))
+		}
+	}
+	blbs := make([][]byte, len(b.Blobs))
+	for i, blob := range b.Blobs {
+		blbs[i], err = bytesutil.DecodeHexWithLength(blob, fieldparams.BlobLength)
+		if err != nil {
+			return nil, server.NewDecodeError(err, fmt.Sprintf("Blobs[%d]", i))
+		}
+	}
+	chunks := make([]*enginev1.ExecutionChunkBundle, len(b.Chunks))
+	for i, chunk := range b.Chunks {
+		chunks[i], err = chunk.ToConsensus()
+		if err != nil {
+			return nil, server.NewDecodeError(err, fmt.Sprintf("Chunks[%d]", i))
+		}
+	}
 
-	// blk := &eth.SignedBeaconBlockContentsGloas{
-	// 	Block:     signedGloasBlock,
-	// 	KzgProofs: proofs,
-	// 	Blobs:     blbs,
-	// 	Chunks:    chunks,
-	// }
-	// return &eth.GenericSignedBeaconBlock{Block: &eth.GenericSignedBeaconBlock_Gloas{Gloas: blk.Block}}, nil
-
-	return &eth.GenericSignedBeaconBlock{Block: &eth.GenericSignedBeaconBlock_Gloas{Gloas: signedGloasBlock}}, nil
+	blk := &eth.SignedBeaconBlockContentsGloas{
+		Block:     signedGloasBlock,
+		KzgProofs: proofs,
+		Blobs:     blbs,
+		Chunks:    chunks,
+	}
+	return &eth.GenericSignedBeaconBlock{Block: &eth.GenericSignedBeaconBlock_Gloas{Gloas: blk}}, nil
 }
 
 func (b *SignedBeaconBlockContentsGloas) ToUnsigned() *BeaconBlockContentsGloas {

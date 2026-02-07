@@ -160,9 +160,9 @@ func (b *SignedBeaconBlock) PbGenericBlock() (*eth.GenericSignedBeaconBlock, err
 			Block: &eth.GenericSignedBeaconBlock_Fulu{Fulu: bc},
 		}, nil
 	case version.Gloas:
-		bc, ok := pb.(*eth.SignedBeaconBlockGloas)
+		bc, ok := pb.(*eth.SignedBeaconBlockContentsGloas)
 		if !ok {
-			return nil, fmt.Errorf("PbGenericBlock() only supports SignedBeaconBlockGloas block content type but got %T", pb)
+			return nil, fmt.Errorf("PbGenericBlock() only supports SignedBeaconBlockContentsGloas block content type but got %T", pb)
 		}
 		return &eth.GenericSignedBeaconBlock{
 			Block: &eth.GenericSignedBeaconBlock_Gloas{Gloas: bc},

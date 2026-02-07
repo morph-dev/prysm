@@ -18,6 +18,7 @@ type GetPayloadResponse struct {
 	// todo: should we convert this to Gwei up front?
 	Bid               primitives.Wei
 	ExecutionRequests *pb.ExecutionRequests
+	Chunks            pb.ExecutionChunksBundle
 }
 
 // bundleGetter is an interface satisfied by get payload responses that have a blobs bundle.
@@ -40,6 +41,10 @@ type shouldOverrideBuilderGetter interface {
 
 type executionRequestsGetter interface {
 	GetDecodedExecutionRequests(pb.ExecutionRequestLimits) (*pb.ExecutionRequests, error)
+}
+
+type chunksGetter interface {
+	GetChunks() pb.ExecutionChunksBundle
 }
 
 func NewGetPayloadResponse(msg proto.Message) (*GetPayloadResponse, error) {
@@ -80,5 +85,11 @@ func NewGetPayloadResponse(msg proto.Message) (*GetPayloadResponse, error) {
 		}
 		r.ExecutionRequests = requests
 	}
+
+	chunks, hasChunks := msg.(chunksGetter)
+	if hasChunks {
+		r.Chunks = chunks.GetChunks()
+	}
+
 	return r, nil
 }

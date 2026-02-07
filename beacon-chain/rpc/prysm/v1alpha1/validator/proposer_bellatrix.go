@@ -52,28 +52,28 @@ const blockBuilderTimeout = 1 * time.Second
 const gasLimitAdjustmentFactor = 1024
 
 // Sets the execution data for the block. Execution data can come from local EL client or remote builder depends on validator registration and circuit breaker conditions.
-func setExecutionData(ctx context.Context, blk interfaces.SignedBeaconBlock, local *blocks.GetPayloadResponse, bid builder.Bid, builderBoostFactor primitives.Gwei) (primitives.Wei, enginev1.BlobsBundler, error) {
+func setExecutionData(ctx context.Context, blk interfaces.SignedBeaconBlock, local *blocks.GetPayloadResponse, bid builder.Bid, builderBoostFactor primitives.Gwei) (primitives.Wei, enginev1.BlobsBundler, enginev1.ExecutionChunksBundle, error) {
 	_, span := trace.StartSpan(ctx, "ProposerServer.setExecutionData")
 	defer span.End()
 
 	slot := blk.Block().Slot()
 	if slots.ToEpoch(slot) < params.BeaconConfig().BellatrixForkEpoch {
-		return primitives.ZeroWei(), nil, nil
+		return primitives.ZeroWei(), nil, nil, nil
 	}
 
 	if local == nil {
-		return primitives.ZeroWei(), nil, errors.New("local payload is nil")
+		return primitives.ZeroWei(), nil, nil, errors.New("local payload is nil")
 	}
 
 	// Use local payload if builder payload is nil.
 	if bid == nil {
-		return local.Bid, local.BlobsBundler, setLocalExecution(blk, local)
+		return local.Bid, local.BlobsBundler, local.Chunks, setLocalExecution(blk, local)
 	}
 
 	builderPayload, err := bid.Header()
 	if err != nil {
 		log.WithError(err).Warn("Proposer: failed to retrieve header from BuilderBid")
-		return local.Bid, local.BlobsBundler, setLocalExecution(blk, local)
+		return local.Bid, local.BlobsBundler, local.Chunks, setLocalExecution(blk, local)
 	}
 
 	switch {
@@ -82,7 +82,7 @@ func setExecutionData(ctx context.Context, blk interfaces.SignedBeaconBlock, loc
 		if err != nil {
 			tracing.AnnotateError(span, err)
 			log.WithError(err).Warn("Proposer: failed to match withdrawals root")
-			return local.Bid, local.BlobsBundler, setLocalExecution(blk, local)
+			return local.Bid, local.BlobsBundler, local.Chunks, setLocalExecution(blk, local)
 		}
 
 		// Compare payload values between local and builder. Default to the local value if it is higher.
@@ -95,7 +95,7 @@ func setExecutionData(ctx context.Context, blk interfaces.SignedBeaconBlock, loc
 				"minBuilderBid":    minBid,
 				"builderGweiValue": builderValueGwei,
 			}).Warn("Proposer: using local execution payload because min bid not attained")
-			return local.Bid, local.BlobsBundler, setLocalExecution(blk, local)
+			return local.Bid, local.BlobsBundler, local.Chunks, setLocalExecution(blk, local)
 		}
 
 		// Use local block if min difference is not attained
@@ -106,7 +106,7 @@ func setExecutionData(ctx context.Context, blk interfaces.SignedBeaconBlock, loc
 				"minBidDiff":       minDiff,
 				"builderGweiValue": builderValueGwei,
 			}).Warn("Proposer: using local execution payload because min difference with local value was not attained")
-			return local.Bid, local.BlobsBundler, setLocalExecution(blk, local)
+			return local.Bid, local.BlobsBundler, local.Chunks, setLocalExecution(blk, local)
 		}
 
 		// Use builder payload if the following in true:
@@ -131,7 +131,7 @@ func setExecutionData(ctx context.Context, blk interfaces.SignedBeaconBlock, loc
 				bidDeneb, ok := bid.(builder.BidDeneb)
 				if !ok {
 					log.Warnf("Bid type %T does not implement builder.BidDeneb", bid)
-					return local.Bid, local.BlobsBundler, setLocalExecution(blk, local)
+					return local.Bid, local.BlobsBundler, local.Chunks, setLocalExecution(blk, local)
 				} else {
 					builderKzgCommitments = bidDeneb.BlobKzgCommitments()
 				}
@@ -142,16 +142,16 @@ func setExecutionData(ctx context.Context, blk interfaces.SignedBeaconBlock, loc
 				bidElectra, ok := bid.(builder.BidElectra)
 				if !ok {
 					log.Warnf("Bid type %T does not implement builder.BidElectra", bid)
-					return local.Bid, local.BlobsBundler, setLocalExecution(blk, local)
+					return local.Bid, local.BlobsBundler, local.Chunks, setLocalExecution(blk, local)
 				} else {
 					executionRequests = bidElectra.ExecutionRequests()
 				}
 			}
 			if err := setBuilderExecution(blk, builderPayload, builderKzgCommitments, executionRequests); err != nil {
 				log.WithError(err).Warn("Proposer: failed to set builder payload")
-				return local.Bid, local.BlobsBundler, setLocalExecution(blk, local)
+				return local.Bid, local.BlobsBundler, local.Chunks, setLocalExecution(blk, local)
 			} else {
-				return bid.Value(), nil, nil
+				return bid.Value(), nil, nil, nil
 			}
 		}
 		if !higherValueBuilder {
@@ -169,13 +169,13 @@ func setExecutionData(ctx context.Context, blk interfaces.SignedBeaconBlock, loc
 			trace.Int64Attribute("builderGweiValue", int64(builderValueGwei)),     // lint:ignore uintcast -- This is OK for tracing.
 			trace.Int64Attribute("builderBoostFactor", int64(builderBoostFactor)), // lint:ignore uintcast -- This is OK for tracing.
 		)
-		return local.Bid, local.BlobsBundler, setLocalExecution(blk, local)
+		return local.Bid, local.BlobsBundler, local.Chunks, setLocalExecution(blk, local)
 	default: // Bellatrix case.
 		if err := setBuilderExecution(blk, builderPayload, nil, nil); err != nil {
 			log.WithError(err).Warn("Proposer: failed to set builder payload")
-			return local.Bid, local.BlobsBundler, setLocalExecution(blk, local)
+			return local.Bid, local.BlobsBundler, local.Chunks, setLocalExecution(blk, local)
 		} else {
-			return bid.Value(), nil, nil
+			return bid.Value(), nil, nil, nil
 		}
 	}
 }

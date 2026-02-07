@@ -237,6 +237,7 @@ func (vs *Server) BuildBlockParallel(ctx context.Context, sBlk interfaces.Signed
 
 	winningBid := primitives.ZeroWei()
 	var bundle enginev1.BlobsBundler
+	var chunks enginev1.ExecutionChunksBundle
 	if sBlk.Version() >= version.Bellatrix {
 		local, err := vs.getLocalPayload(ctx, sBlk.Block(), head)
 		if err != nil {
@@ -258,7 +259,7 @@ func (vs *Server) BuildBlockParallel(ctx context.Context, sBlk interfaces.Signed
 			}
 		}
 
-		winningBid, bundle, err = setExecutionData(ctx, sBlk, local, builderBid, builderBoostFactor)
+		winningBid, bundle, chunks, err = setExecutionData(ctx, sBlk, local, builderBid, builderBoostFactor)
 		if err != nil {
 			return nil, status.Errorf(codes.Internal, "Could not set execution data: %v", err)
 		}
@@ -272,7 +273,7 @@ func (vs *Server) BuildBlockParallel(ctx context.Context, sBlk interfaces.Signed
 	}
 	sBlk.SetStateRoot(sr)
 
-	return vs.constructGenericBeaconBlock(sBlk, bundle, winningBid)
+	return vs.constructGenericBeaconBlock(sBlk, bundle, chunks, winningBid)
 }
 
 // Deprecated: The gRPC API will remain the default and fully supported through v8 (expected in 2026) but will be eventually removed in favor of REST API.
@@ -282,6 +283,7 @@ func (vs *Server) ProposeBeaconBlock(ctx context.Context, req *ethpb.GenericSign
 	var (
 		blobSidecars       []*ethpb.BlobSidecar
 		dataColumnSidecars []blocks.RODataColumn
+		err                error
 	)
 
 	ctx, span := trace.StartSpan(ctx, "ProposerServer.ProposeBeaconBlock")
@@ -300,8 +302,11 @@ func (vs *Server) ProposeBeaconBlock(ctx context.Context, req *ethpb.GenericSign
 		return nil, status.Errorf(codes.Internal, "Could not hash tree root: %v", err)
 	}
 
+	// TODO(EIP-8101): Gloas blocks are not actually blinded (but they can be and this logic should be improved)
+	isBlinded := block.IsBlinded() && block.Version() < version.Gloas
+
 	// For post-Fulu blinded blocks (including Gloas), submit to relay and return early
-	if block.IsBlinded() && slots.ToEpoch(block.Block().Slot()) >= params.BeaconConfig().FuluForkEpoch {
+	if isBlinded && slots.ToEpoch(block.Block().Slot()) >= params.BeaconConfig().FuluForkEpoch {
 		err := vs.BlockBuilder.SubmitBlindedBlockPostFulu(ctx, block)
 		if err != nil {
 			return nil, status.Errorf(codes.Internal, "Could not submit blinded block post-Fulu: %v", err)
@@ -309,10 +314,11 @@ func (vs *Server) ProposeBeaconBlock(ctx context.Context, req *ethpb.GenericSign
 		return &ethpb.ProposeResponse{BlockRoot: root[:]}, nil
 	}
 
-	rob, err := blocks.NewROBlockWithRoot(block, root)
-	if block.IsBlinded() {
+	var rob blocks.ROBlock
+	if isBlinded {
 		block, blobSidecars, err = vs.handleBlindedBlock(ctx, block)
 	} else if block.Version() >= version.Deneb {
+		rob, err = blocks.NewROBlockWithRoot(block, root)
 		blobSidecars, dataColumnSidecars, err = vs.handleUnblindedBlock(rob, req)
 	}
 	if err != nil {
@@ -328,6 +334,7 @@ func (vs *Server) ProposeBeaconBlock(ctx context.Context, req *ethpb.GenericSign
 
 	wg.Add(1)
 	go func() {
+		// TODO: broadcast chunks and cals as well
 		if err := vs.broadcastReceiveBlock(ctx, &wg, block, root); err != nil {
 			errChan <- errors.Wrap(err, "broadcast/receive block failed")
 			return
@@ -432,6 +439,7 @@ func (vs *Server) handleUnblindedBlock(
 		return nil, nil, errors.Wrap(err, "build blob sidecars")
 	}
 
+	// TODO: return cal and chunk sidecars as well
 	return blobSidecars, nil, nil
 }
 

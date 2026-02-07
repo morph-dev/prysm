@@ -127,11 +127,24 @@ func (v *validator) ProposeBlock(ctx context.Context, slot primitives.Slot, pubK
 	}
 
 	var genericSignedBlock *ethpb.GenericSignedBeaconBlock
-	// Special handling for Deneb blocks and later version because of blob side cars.
-	if blk.Version() >= version.Deneb && !blk.IsBlinded() {
+
+	if blk.Version() >= version.Gloas {
+		// Special handling for Gloas blocks
 		pb, err := blk.Proto()
 		if err != nil {
-			log.WithError(err).Error("Failed to get deneb block")
+			log.WithError(err).Error("Failed to get post-gloas block")
+			return
+		}
+		genericSignedBlock, err = buildGenericSignedBlockGloasWithBlobsAndChunks(pb, b)
+		if err != nil {
+			log.WithError(err).Error("Failed to build generic gloas signed block")
+			return
+		}
+	} else if blk.Version() >= version.Deneb && !blk.IsBlinded() {
+		// Special handling for blinded Deneb->Fulu blocks because of blob side cars.
+		pb, err := blk.Proto()
+		if err != nil {
+			log.WithError(err).Error("Failed to get deneb-fulu block")
 			return
 		}
 		switch blk.Version() {
@@ -154,12 +167,7 @@ func (v *validator) ProposeBlock(ctx context.Context, slot primitives.Slot, pubK
 				return
 			}
 		case version.Gloas:
-			// genericSignedBlock, err = buildGenericSignedBlockGloasWithBlobs(pb, b)
-			// if err != nil {
-			// 	log.WithError(err).Error("Failed to build generic signed block")
-			// 	return
-			// }
-			log.WithError(err).Error("EIP-8101: Trying to propose unbinded Gloas block")
+			log.WithError(err).Error("EIP-8101: Trying to propose unblinded Gloas block")
 		default:
 			log.Errorf("Unsupported block version %s", version.String(blk.Version()))
 		}
@@ -298,23 +306,22 @@ func buildGenericSignedBlockFuluWithBlobs(pb proto.Message, b *ethpb.GenericBeac
 	}, nil
 }
 
-// TODO(EIP-8101): Remove if not needed
-// func buildGenericSignedBlockGloasWithBlobs(pb proto.Message, b *ethpb.GenericBeaconBlock) (*ethpb.GenericSignedBeaconBlock, error) {
-// 	gloasBlock, ok := pb.(*ethpb.SignedBeaconBlockGloas)
-// 	if !ok {
-// 		return nil, errors.New("could cast to gloas block")
-// 	}
-// 	return &ethpb.GenericSignedBeaconBlock{
-// 		Block: &ethpb.GenericSignedBeaconBlock_Gloas{
-// 			Gloas: &ethpb.SignedBeaconBlockContentsGloas{
-// 				Block:     gloasBlock,
-// 				KzgProofs: b.GetGloas().KzgProofs,
-// 				Blobs:     b.GetGloas().Blobs,
-// 				Chunks:    b.GetGloas().Chunks,
-// 			},
-// 		},
-// 	}, nil
-// }
+func buildGenericSignedBlockGloasWithBlobsAndChunks(pb proto.Message, b *ethpb.GenericBeaconBlock) (*ethpb.GenericSignedBeaconBlock, error) {
+	gloasBlock, ok := pb.(*ethpb.SignedBeaconBlockGloas)
+	if !ok {
+		return nil, errors.New("could cast to gloas block")
+	}
+	return &ethpb.GenericSignedBeaconBlock{
+		Block: &ethpb.GenericSignedBeaconBlock_Gloas{
+			Gloas: &ethpb.SignedBeaconBlockContentsGloas{
+				Block:     gloasBlock,
+				KzgProofs: b.GetGloas().KzgProofs,
+				Blobs:     b.GetGloas().Blobs,
+				Chunks:    b.GetGloas().Chunks,
+			},
+		},
+	}, nil
+}
 
 // ProposeExit performs a voluntary exit on a validator.
 // The exit is signed by the validator before being sent to the beacon node for broadcasting.
