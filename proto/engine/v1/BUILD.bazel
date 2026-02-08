@@ -84,8 +84,9 @@ go_library(
         "electra.go",
         "execution_engine.go",
         "fulu.go",
-        "json_marshal_unmarshal.go",
         "gloas.go",
+        "json_gloas.go",
+        "json_marshal_unmarshal.go",
         ":ssz_generated_files",  # keep
     ],
     embed = [

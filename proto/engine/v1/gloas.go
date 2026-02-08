@@ -43,3 +43,11 @@ func (ebe *ExecutionBundleGloas) GetDecodedExecutionRequests(limits ExecutionReq
 	}
 	return requests, nil
 }
+
+func (c *ExecutionChunkBundle) ExecutionChunk() *ExecutionChunk {
+	return &ExecutionChunk{
+		ChunkHeader:  c.ChunkHeader,
+		Transactions: c.Transactions,
+		Withdrawals:  c.Withdrawals,
+	}
+}

@@ -377,18 +377,32 @@ func setLocalExecution(blk interfaces.SignedBeaconBlock, local *blocks.GetPayloa
 			return errors.Wrap(err, "could not set execution requests")
 		}
 	}
-	return setExecution(blk, local.ExecutionData, false, kzgCommitments, local.ExecutionRequests)
+	return setExecution(blk, local.ExecutionData, false, kzgCommitments, local.ExecutionRequests, local.Chunks)
 }
 
 // setBuilderExecution sets the execution context for a builder's beacon block.
 // It delegates to setExecution for the actual work.
-func setBuilderExecution(blk interfaces.SignedBeaconBlock, execution interfaces.ExecutionData, builderKzgCommitments [][]byte, requests *enginev1.ExecutionRequests) error {
-	return setExecution(blk, execution, true, builderKzgCommitments, requests)
+func setBuilderExecution(
+	blk interfaces.SignedBeaconBlock,
+	execution interfaces.ExecutionData,
+	builderKzgCommitments [][]byte,
+	requests *enginev1.ExecutionRequests,
+) error {
+	// TODO(EIP-8101): Add support for chunks for builders
+	var chunks enginev1.ExecutionChunksBundle
+	return setExecution(blk, execution, true, builderKzgCommitments, requests, chunks)
 }
 
 // setExecution sets the execution context for a beacon block. It also sets KZG commitments based on the block version.
 // The function is designed to be flexible and handle both local and builder executions.
-func setExecution(blk interfaces.SignedBeaconBlock, execution interfaces.ExecutionData, isBlinded bool, kzgCommitments [][]byte, requests *enginev1.ExecutionRequests) error {
+func setExecution(
+	blk interfaces.SignedBeaconBlock,
+	execution interfaces.ExecutionData,
+	isBlinded bool,
+	kzgCommitments [][]byte,
+	requests *enginev1.ExecutionRequests,
+	chunks enginev1.ExecutionChunksBundle,
+) error {
 	if execution == nil {
 		return errors.New("execution is nil")
 	}
@@ -429,6 +443,16 @@ func setExecution(blk interfaces.SignedBeaconBlock, execution interfaces.Executi
 	if err := blk.SetExecutionRequests(requests); err != nil {
 		return errors.Wrap(err, requestsErr)
 	}
+
+	// If the block version is below Gloas, no further actions are needed
+	if blk.Version() < version.Gloas {
+		return nil
+	}
+
+	if err := blk.SetChunks(chunks); err != nil {
+		return errors.Wrap(err, "failed to set chunks")
+	}
+
 	return nil
 }
 

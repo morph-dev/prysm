@@ -93,6 +93,7 @@ type SignedBeaconBlock interface {
 	SetSlot(slot primitives.Slot)
 	SetSignature(sig []byte)
 	SetExecutionRequests(er *enginev1.ExecutionRequests) error
+	SetChunks(chunks enginev1.ExecutionChunksBundle) error
 	Unblind(e ExecutionData) error
 }
 

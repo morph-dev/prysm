@@ -51,4 +51,5 @@ const (
 
 	// Introduced in Gloas
 	MaxBytesPerTxChunkAccessList = 16777216
+	MaxChunksPerBlock            = 256
 )

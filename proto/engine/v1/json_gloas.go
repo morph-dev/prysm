@@ -12,15 +12,15 @@ import (
 // Chunk Header
 
 type executionChunkHeaderJSON struct {
-	Index               hexutil.Uint64 `json:"index"`
-	ChunkAccessListHash common.Hash    `json:"calHash"`
-	PreChunkTxCount     hexutil.Uint64 `json:"preChunkTxCount"`
-	PreChunkGasUsed     hexutil.Uint64 `json:"preChunkGasUsed"`
-	PreChunkBlobGasUsed hexutil.Uint64 `json:"preChunkBlobGasUsed"`
-	TxsRoot             common.Hash    `json:"txsRoot"`
-	GasUsed             hexutil.Uint64 `json:"gasUsed"`
-	BlobGasUsed         hexutil.Uint64 `json:"blobGasUsed"`
-	WithdrawalsRoot     common.Hash    `json:"withdrawalsRoot"`
+	Index               uint64      `json:"index"`
+	ChunkAccessListHash common.Hash `json:"calHash"`
+	PreChunkTxCount     uint64      `json:"preChunkTxCount"`
+	PreChunkGasUsed     uint64      `json:"preChunkGasUsed"`
+	PreChunkBlobGasUsed uint64      `json:"preChunkBlobGasUsed"`
+	TxsRoot             common.Hash `json:"txsRoot"`
+	GasUsed             uint64      `json:"gasUsed"`
+	BlobGasUsed         uint64      `json:"blobGasUsed"`
+	WithdrawalsRoot     common.Hash `json:"withdrawalsRoot"`
 }
 
 func (ch *ExecutionChunkHeader) MarshalJSON() ([]byte, error) {
@@ -34,14 +34,14 @@ func (ch *ExecutionChunkHeader) MarshalJSON() ([]byte, error) {
 		return nil, fmt.Errorf("withdrawalsRoot is not 32 bytes long")
 	}
 	return json.Marshal(executionChunkHeaderJSON{
-		Index:               hexutil.Uint64(ch.Index),
+		Index:               ch.Index,
 		ChunkAccessListHash: common.BytesToHash(ch.ChunkAccessListHash),
-		PreChunkTxCount:     hexutil.Uint64(ch.PreChunkTxCount),
-		PreChunkGasUsed:     hexutil.Uint64(ch.PreChunkGasUsed),
-		PreChunkBlobGasUsed: hexutil.Uint64(ch.PreChunkBlobGasUsed),
+		PreChunkTxCount:     ch.PreChunkTxCount,
+		PreChunkGasUsed:     ch.PreChunkGasUsed,
+		PreChunkBlobGasUsed: ch.PreChunkBlobGasUsed,
 		TxsRoot:             common.BytesToHash(ch.TxsRoot),
-		GasUsed:             hexutil.Uint64(ch.GasUsed),
-		BlobGasUsed:         hexutil.Uint64(ch.BlobGasUsed),
+		GasUsed:             ch.GasUsed,
+		BlobGasUsed:         ch.BlobGasUsed,
 		WithdrawalsRoot:     common.BytesToHash(ch.WithdrawalsRoot),
 	})
 }
@@ -52,14 +52,14 @@ func (ch *ExecutionChunkHeader) UnmarshalJSON(enc []byte) error {
 		return err
 	}
 	*ch = ExecutionChunkHeader{
-		Index:               uint64(dec.Index),
+		Index:               dec.Index,
 		ChunkAccessListHash: dec.ChunkAccessListHash.Bytes(),
-		PreChunkTxCount:     uint64(dec.PreChunkTxCount),
-		PreChunkGasUsed:     uint64(dec.PreChunkGasUsed),
-		PreChunkBlobGasUsed: uint64(dec.PreChunkBlobGasUsed),
+		PreChunkTxCount:     dec.PreChunkTxCount,
+		PreChunkGasUsed:     dec.PreChunkGasUsed,
+		PreChunkBlobGasUsed: dec.PreChunkBlobGasUsed,
 		TxsRoot:             dec.TxsRoot.Bytes(),
-		GasUsed:             uint64(dec.GasUsed),
-		BlobGasUsed:         uint64(dec.BlobGasUsed),
+		GasUsed:             dec.GasUsed,
+		BlobGasUsed:         dec.BlobGasUsed,
 		WithdrawalsRoot:     dec.WithdrawalsRoot.Bytes(),
 	}
 	return nil

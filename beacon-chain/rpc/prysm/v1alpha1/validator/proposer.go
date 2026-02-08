@@ -314,11 +314,10 @@ func (vs *Server) ProposeBeaconBlock(ctx context.Context, req *ethpb.GenericSign
 		return &ethpb.ProposeResponse{BlockRoot: root[:]}, nil
 	}
 
-	var rob blocks.ROBlock
+	rob, err := blocks.NewROBlockWithRoot(block, root)
 	if isBlinded {
 		block, blobSidecars, err = vs.handleBlindedBlock(ctx, block)
 	} else if block.Version() >= version.Deneb {
-		rob, err = blocks.NewROBlockWithRoot(block, root)
 		blobSidecars, dataColumnSidecars, err = vs.handleUnblindedBlock(rob, req)
 	}
 	if err != nil {
