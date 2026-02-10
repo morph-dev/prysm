@@ -227,6 +227,7 @@ message PayloadStatus {
     SYNCING = 3;
     ACCEPTED = 4;
     INVALID_BLOCK_HASH = 5;
+    INSUFFICIENT_INFORMATION = 6;
   }
 }
 

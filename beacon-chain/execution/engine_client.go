@@ -143,6 +143,12 @@ type EngineCaller interface {
 	GetPayload(ctx context.Context, payloadId [8]byte, slot primitives.Slot) (*blocks.GetPayloadResponse, error)
 	ExecutionBlockByHash(ctx context.Context, hash common.Hash, withTxs bool) (*pb.ExecutionBlock, error)
 	GetTerminalBlockHash(ctx context.Context, transitionTime uint64) ([]byte, bool, error)
+
+	// Added in Gloas
+	NewBlockHeader(ctx context.Context, payload interfaces.ExecutionData, parentBlockRoot *common.Hash, versionedHashes []common.Hash, executionRequests *pb.ExecutionRequests, chunkCount int) (bool, error)
+	NewChunkAccessList(ctx context.Context, blockHash common.Hash, chunkIndex uint16, chunkAccessList []byte) (bool, error)
+	ExecuteChunk(ctx context.Context, blockHash common.Hash, chunk *pb.ExecutionChunk) (bool, error)
+	FinalizeBlock(ctx context.Context, blockHash common.Hash) ([]byte, error)
 }
 
 var ErrEmptyBlockHash = errors.New("Block hash is empty 0x0000...")

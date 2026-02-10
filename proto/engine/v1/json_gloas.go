@@ -9,7 +9,7 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
-// Chunk Header
+// ExecutionChunkHeader
 
 type executionChunkHeaderJSON struct {
 	Index               uint64      `json:"index"`
@@ -65,7 +65,44 @@ func (ch *ExecutionChunkHeader) UnmarshalJSON(enc []byte) error {
 	return nil
 }
 
-// Chunk Bundle
+// ExecutionChunk
+
+type executionChunkJSON struct {
+	ChunkHeader  *ExecutionChunkHeader `json:"chunkHeader"`
+	Transactions []hexutil.Bytes       `json:"transactions"`
+	Withdrawals  []*Withdrawal         `json:"withdrawals"`
+}
+
+func (c *ExecutionChunk) MarshalJSON() ([]byte, error) {
+	transactions := make([]hexutil.Bytes, len(c.Transactions))
+	for i, tx := range c.Transactions {
+		transactions[i] = tx
+	}
+	return json.Marshal(executionChunkJSON{
+		ChunkHeader:  c.ChunkHeader,
+		Transactions: transactions,
+		Withdrawals:  c.Withdrawals,
+	})
+}
+
+func (c *ExecutionChunk) UnmarshalJSON(enc []byte) error {
+	dec := executionChunkJSON{}
+	if err := json.Unmarshal(enc, &dec); err != nil {
+		return err
+	}
+	transactions := make([][]byte, len(dec.Transactions))
+	for i, tx := range dec.Transactions {
+		transactions[i] = tx
+	}
+	*c = ExecutionChunk{
+		ChunkHeader:  dec.ChunkHeader,
+		Transactions: transactions,
+		Withdrawals:  dec.Withdrawals,
+	}
+	return nil
+}
+
+// ExecutionChunkBundle
 
 type executionChunkBundleJSON struct {
 	ChunkHeader     *ExecutionChunkHeader `json:"chunkHeader"`
