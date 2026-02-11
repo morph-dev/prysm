@@ -126,7 +126,7 @@ type BeaconNode struct {
 	syncChecker              *initialsync.SyncChecker
 	slasherEnabled           bool
 	lcStore                  *lightclient.Store
-	chunkAccessListCache     *cache.ChunkAccessListCache
+	chunkCache               *cache.ChunkCache
 	ConfigOptions            []params.Option
 }
 
@@ -155,7 +155,7 @@ func New(cliCtx *cli.Context, cancel context.CancelFunc, opts ...Option) (*Beaco
 		blsToExecPool:           blstoexec.NewPool(),
 		trackedValidatorsCache:  cache.NewTrackedValidatorsCache(),
 		payloadIDCache:          cache.NewPayloadIDCache(),
-		chunkAccessListCache:    cache.NewChunkAccessListCache(),
+		chunkCache:              cache.NewChunkCache(),
 		slasherBlockHeadersFeed: new(event.Feed),
 		slasherAttestationsFeed: new(event.Feed),
 		serviceFlagOpts:         &serviceFlagOpts{},
@@ -744,7 +744,7 @@ func (b *BeaconNode) registerBlockchainService(fc forkchoice.ForkChoicer, gs *st
 		blockchain.WithSyncChecker(b.syncChecker),
 		blockchain.WithSlasherEnabled(b.slasherEnabled),
 		blockchain.WithLightClientStore(b.lcStore),
-		blockchain.WithChunkAccessListCache(b.chunkAccessListCache),
+		blockchain.WithChunkCache(b.chunkCache),
 	)
 
 	blockchainService, err := blockchain.NewService(b.ctx, opts...)
@@ -834,7 +834,7 @@ func (b *BeaconNode) registerSyncService(initialSyncComplete chan struct{}, bFil
 		regularsync.WithSlasherEnabled(b.slasherEnabled),
 		regularsync.WithLightClientStore(b.lcStore),
 		regularsync.WithBatchVerifierLimit(b.cliCtx.Int(flags.BatchVerifierLimit.Name)),
-		regularsync.WithChunkAccessListCache(b.chunkAccessListCache),
+		regularsync.WithChunkCache(b.chunkCache),
 	)
 	return b.services.RegisterService(rs)
 }
@@ -985,7 +985,7 @@ func (b *BeaconNode) registerRPCService(router *http.ServeMux) error {
 		TrackedValidatorsCache:    b.trackedValidatorsCache,
 		PayloadIDCache:            b.payloadIDCache,
 		LCStore:                   b.lcStore,
-		ChunkAccessListCache:      b.chunkAccessListCache,
+		ChunkCache:                b.chunkCache,
 	})
 
 	return b.services.RegisterService(rpcService)

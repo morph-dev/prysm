@@ -19,7 +19,7 @@ func (s *Service) chunkAccessListSubscriber(_ context.Context, msg proto.Message
 	}
 
 	// TODO: eip-8101
-	// s.chunkAccessListCache.Add(chunkAccessList.Slot, chunkAccessList.ChunkIndex, chunkAccessList.AccountChanges)
+	// s.ChunkCache.Add(chunkAccessList.Slot, chunkAccessList.ChunkIndex, chunkAccessList.AccountChanges)
 
 	return nil
 }

@@ -9,7 +9,7 @@ go_library(
         "attestation_data.go",
         "balance_cache_key.go",
         "checkpoint_state.go",
-        "chunk_access_list.go",
+        "chunk.go",
         "committee.go",
         "committee_disabled.go",  # keep
         "committees.go",
@@ -74,7 +74,7 @@ go_test(
         "attestation_test.go",
         "cache_test.go",
         "checkpoint_state_test.go",
-        "chunk_access_list_test.go",
+        "chunk_test.go",
         "committee_fuzz_test.go",
         "committee_test.go",
         "payload_id_test.go",
