@@ -391,7 +391,8 @@ func (b *SignedBeaconBlock) ToBlinded() (interfaces.ReadOnlySignedBeaconBlock, e
 						BlsToExecutionChanges:  b.block.body.blsToExecutionChanges,
 						BlobKzgCommitments:     b.block.body.blobKzgCommitments,
 						ExecutionRequests:      b.block.body.executionRequests,
-						// ChunkHeadersRoot: TODO(EIP-8101)
+						ChunkHeadersRoot:       b.block.body.chunkHeadersRoot[:],
+						ChunkAccessListsRoot:   b.block.body.chunkAccessListsRoot[:],
 					},
 				},
 				Signature: b.signature[:],

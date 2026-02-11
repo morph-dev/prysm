@@ -20,7 +20,7 @@ const (
 	payloadFieldIndex = 9
 )
 
-func ComputeBlockBodyFieldRoots(ctx context.Context, blockBody *BeaconBlockBody) ([][]byte, error) {
+func ComputeBlockBodyFieldRoots(ctx context.Context, blockBody interfaces.ReadOnlyBeaconBlockBody) ([][]byte, error) {
 	_, span := trace.StartSpan(ctx, "blocks.ComputeBlockBodyFieldRoots")
 	defer span.End()
 
@@ -29,7 +29,7 @@ func ComputeBlockBodyFieldRoots(ctx context.Context, blockBody *BeaconBlockBody)
 	}
 
 	var fieldRoots [][]byte
-	switch blockBody.version {
+	switch blockBody.Version() {
 	case version.Phase0:
 		fieldRoots = make([][]byte, 8)
 	case version.Altair:
@@ -47,7 +47,7 @@ func ComputeBlockBodyFieldRoots(ctx context.Context, blockBody *BeaconBlockBody)
 	case version.Gloas:
 		fieldRoots = make([][]byte, 15)
 	default:
-		return nil, fmt.Errorf("unknown block body version %s", version.String(blockBody.version))
+		return nil, fmt.Errorf("unknown block body version %s", version.String(blockBody.Version()))
 	}
 
 	for i := range fieldRoots {
@@ -123,7 +123,7 @@ func ComputeBlockBodyFieldRoots(ctx context.Context, blockBody *BeaconBlockBody)
 	}
 	copy(fieldRoots[7], root[:])
 
-	if blockBody.version >= version.Altair {
+	if blockBody.Version() >= version.Altair {
 		// Sync Aggregate
 		sa, err := blockBody.SyncAggregate()
 		if err != nil {
@@ -136,7 +136,7 @@ func ComputeBlockBodyFieldRoots(ctx context.Context, blockBody *BeaconBlockBody)
 		copy(fieldRoots[8], root[:])
 	}
 
-	if blockBody.version >= version.Bellatrix {
+	if blockBody.Version() >= version.Bellatrix {
 		// Execution Payload
 		ep, err := blockBody.Execution()
 		if err != nil {
@@ -149,7 +149,7 @@ func ComputeBlockBodyFieldRoots(ctx context.Context, blockBody *BeaconBlockBody)
 		copy(fieldRoots[9], root[:])
 	}
 
-	if blockBody.version >= version.Capella {
+	if blockBody.Version() >= version.Capella {
 		// BLS Changes
 		bls, err := blockBody.BLSToExecutionChanges()
 		if err != nil {
@@ -162,10 +162,14 @@ func ComputeBlockBodyFieldRoots(ctx context.Context, blockBody *BeaconBlockBody)
 		copy(fieldRoots[10], root[:])
 	}
 
-	if blockBody.version >= version.Deneb {
+	if blockBody.Version() >= version.Deneb {
 		// KZG commitments
-		roots := make([][32]byte, len(blockBody.blobKzgCommitments))
-		for i, commitment := range blockBody.blobKzgCommitments {
+		kzgCommitments, err := blockBody.BlobKzgCommitments()
+		if err != nil {
+			return nil, err
+		}
+		roots := make([][32]byte, len(kzgCommitments))
+		for i, commitment := range kzgCommitments {
 			chunks, err := ssz.PackByChunk([][]byte{commitment})
 			if err != nil {
 				return nil, err
@@ -182,7 +186,7 @@ func ComputeBlockBodyFieldRoots(ctx context.Context, blockBody *BeaconBlockBody)
 		copy(fieldRoots[11], root[:])
 	}
 
-	if blockBody.version >= version.Electra {
+	if blockBody.Version() >= version.Electra {
 		// Execution Requests
 		er, err := blockBody.ExecutionRequests()
 		if err != nil {
@@ -195,7 +199,7 @@ func ComputeBlockBodyFieldRoots(ctx context.Context, blockBody *BeaconBlockBody)
 		copy(fieldRoots[12], root[:])
 	}
 
-	if blockBody.version >= version.Gloas {
+	if blockBody.Version() >= version.Gloas {
 		// Chunk Headers Root
 		chunkHeadersRoot, err := blockBody.ChunkHeadersRoot()
 		if err != nil {

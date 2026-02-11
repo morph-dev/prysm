@@ -3,7 +3,6 @@ package blocks
 import (
 	"fmt"
 
-	"github.com/OffchainLabs/prysm/v6/beacon-chain/state/stateutil"
 	consensus_types "github.com/OffchainLabs/prysm/v6/consensus-types"
 	"github.com/OffchainLabs/prysm/v6/consensus-types/interfaces"
 	"github.com/OffchainLabs/prysm/v6/consensus-types/primitives"
@@ -181,34 +180,5 @@ func (b *SignedBeaconBlock) SetExecutionRequests(req *enginev1.ExecutionRequests
 		return consensus_types.ErrNotSupported("SetExecutionRequests", b.version)
 	}
 	b.block.body.executionRequests = req
-	return nil
-}
-
-// SetChunks sets chunks and chunk access lists roots in the block.
-func (b *SignedBeaconBlock) SetChunks(chunkBundles enginev1.ExecutionChunksBundle) error {
-	if b.version < version.Gloas {
-		return consensus_types.ErrNotSupported("SetChunks", b.version)
-	}
-
-	chunks := make([]*enginev1.ExecutionChunk, len(chunkBundles))
-	cals := make([][]byte, len(chunkBundles))
-
-	for i, chunkBundle := range chunkBundles {
-		chunks[i] = chunkBundle.ExecutionChunk()
-		cals[i] = chunkBundle.ChunkAccessList
-	}
-
-	chunksRoot, err := stateutil.ChunksRoot(chunks)
-	if err != nil {
-		return err
-	}
-	b.block.body.chunkHeadersRoot = chunksRoot
-
-	calsRoot, err := stateutil.ChunkAccessListsRoot(cals)
-	if err != nil {
-		return err
-	}
-	b.block.body.chunkAccessListsRoot = calsRoot
-
 	return nil
 }

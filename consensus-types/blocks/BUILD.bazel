@@ -7,6 +7,7 @@ go_library(
         "factory.go",
         "get_payload.go",
         "getters.go",
+        "gloas.go",
         "kzg.go",
         "proofs.go",
         "proto.go",

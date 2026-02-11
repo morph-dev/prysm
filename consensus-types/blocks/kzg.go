@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	bodyLength    = 13 // The number of elements in the BeaconBlockBody Container for Electra
+	bodyLength    = 15 // The number of elements in the BeaconBlockBody Container for Gloas
 	logBodyLength = 4  // The log 2 of bodyLength
 	kzgPosition   = 11 // The index of the KZG commitment list in the Body
 	kzgRootIndex  = 54 // The Merkle index of the KZG commitment list's root in the Body's Merkle tree
@@ -339,5 +339,22 @@ func topLevelRoots(body interfaces.ReadOnlyBeaconBlockBody) ([][]byte, error) {
 		}
 		copy(layer[12], root[:])
 	}
+
+	if body.Version() >= version.Gloas {
+		// Chunk headers root
+		root, err = body.ChunkHeadersRoot()
+		if err != nil {
+			return nil, err
+		}
+		copy(layer[13], root[:])
+
+		// Chunk access lists root
+		root, err = body.ChunkAccessListsRoot()
+		if err != nil {
+			return nil, err
+		}
+		copy(layer[13], root[:])
+	}
+
 	return layer, nil
 }
