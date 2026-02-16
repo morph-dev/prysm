@@ -76,7 +76,6 @@ go_test(
         "attestation_test.go",
         "cache_test.go",
         "checkpoint_state_test.go",
-        "chunk_test.go",
         "committee_fuzz_test.go",
         "committee_test.go",
         "payload_id_test.go",

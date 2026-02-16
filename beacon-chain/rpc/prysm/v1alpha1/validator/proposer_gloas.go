@@ -3,6 +3,7 @@ package validator
 import (
 	"context"
 
+	fieldparams "github.com/OffchainLabs/prysm/v6/config/fieldparams"
 	"github.com/OffchainLabs/prysm/v6/consensus-types/blocks"
 	"github.com/OffchainLabs/prysm/v6/consensus-types/interfaces"
 	ethpb "github.com/OffchainLabs/prysm/v6/proto/prysm/v1alpha1"
@@ -60,6 +61,30 @@ func BuildChunkSidecars(ctx context.Context, block interfaces.ReadOnlySignedBeac
 	return chunkSidecars, calSidecars, nil
 }
 
-func (vs *Server) broadcastReceiveChunks(ctx context.Context) error {
+func (vs *Server) broadcastReceiveChunks(
+	ctx context.Context,
+	block interfaces.SignedBeaconBlock,
+	root [fieldparams.RootLength]byte,
+	chunkSidecars []*ethpb.ExecutionChunkSidecar,
+	calSidecars []*ethpb.ChunkAccessListSidecar,
+) error {
+	// TODO(EIP-8101): broadcast chunks and cals
+
+	for _, cal := range calSidecars {
+		roCal, err := blocks.NewROChunkAccessList(cal)
+		if err != nil {
+			return err
+		}
+		verifiedCal := blocks.NewVerifiedROChunkAccessList(roCal)
+		vs.ChunkReceiver.ReceiveChunkAccessList(ctx, verifiedCal)
+	}
+	for _, chunk := range chunkSidecars {
+		roChunk, err := blocks.NewROExecutionChunk(chunk)
+		if err != nil {
+			return err
+		}
+		verifiedChunk := blocks.NewVerifiedROExecutionChunk(roChunk)
+		vs.ChunkReceiver.ReceiveExecutionChunk(ctx, verifiedChunk)
+	}
 	return nil
 }

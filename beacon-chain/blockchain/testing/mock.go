@@ -76,6 +76,8 @@ type ChainService struct {
 	SyncingRoot                 [32]byte
 	Blobs                       []blocks.VerifiedROBlob
 	DataColumns                 []blocks.VerifiedRODataColumn
+	ExecutionChunks             []blocks.VerifiedROExecutionChunk
+	ChunkAccessLists            []blocks.VerifiedROChunkAccessList
 	TargetRoot                  [32]byte
 	MockHeadSlot                *primitives.Slot
 }
@@ -726,6 +728,16 @@ func (c *ChainService) ReceiveDataColumn(dc blocks.VerifiedRODataColumn) error {
 func (c *ChainService) ReceiveDataColumns(dcs []blocks.VerifiedRODataColumn) error {
 	c.DataColumns = append(c.DataColumns, dcs...)
 	return nil
+}
+
+// ReceiveExecutionChunk implements the same method in chain service
+func (c *ChainService) ReceiveExecutionChunk(ctx context.Context, chunk blocks.VerifiedROExecutionChunk) {
+	c.ExecutionChunks = append(c.ExecutionChunks, chunk)
+}
+
+// ReceiveChunkAccessList implements the same method in chain service
+func (c *ChainService) ReceiveChunkAccessList(ctx context.Context, cal blocks.VerifiedROChunkAccessList) {
+	c.ChunkAccessLists = append(c.ChunkAccessLists, cal)
 }
 
 // TargetRootForEpoch mocks the same method in the chain service

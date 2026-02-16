@@ -281,9 +281,11 @@ func (vs *Server) BuildBlockParallel(ctx context.Context, sBlk interfaces.Signed
 // ProposeBeaconBlock handles the proposal of beacon blocks.
 func (vs *Server) ProposeBeaconBlock(ctx context.Context, req *ethpb.GenericSignedBeaconBlock) (*ethpb.ProposeResponse, error) {
 	var (
-		blobSidecars       []*ethpb.BlobSidecar
-		dataColumnSidecars []blocks.RODataColumn
-		err                error
+		blobSidecars            []*ethpb.BlobSidecar
+		dataColumnSidecars      []blocks.RODataColumn
+		chunkSidecars           []*ethpb.ExecutionChunkSidecar
+		chunkAccessListSidecars []*ethpb.ChunkAccessListSidecar
+		err                     error
 	)
 
 	ctx, span := trace.StartSpan(ctx, "ProposerServer.ProposeBeaconBlock")
@@ -328,12 +330,18 @@ func (vs *Server) ProposeBeaconBlock(ctx context.Context, req *ethpb.GenericSign
 		return nil, status.Errorf(codes.Internal, "%s: %v", "handle block failed", err)
 	}
 
+	if block.Version() >= version.Gloas {
+		chunkSidecars, chunkAccessListSidecars, err = BuildChunkSidecars(ctx, block, req)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "%s: %v", "Building chunk sidecars failed", err)
+		}
+	}
+
 	var wg sync.WaitGroup
 	errChan := make(chan error, 1)
 
 	wg.Add(1)
 	go func() {
-		// TODO: broadcast chunks and cals as well
 		if err := vs.broadcastReceiveBlock(ctx, &wg, block, root); err != nil {
 			errChan <- errors.Wrap(err, "broadcast/receive block failed")
 			return
@@ -345,6 +353,9 @@ func (vs *Server) ProposeBeaconBlock(ctx context.Context, req *ethpb.GenericSign
 
 	if err := vs.broadcastAndReceiveSidecars(ctx, block, root, blobSidecars, dataColumnSidecars); err != nil {
 		return nil, status.Errorf(codes.Internal, "Could not broadcast/receive sidecars: %v", err)
+	}
+	if err := vs.broadcastReceiveChunks(ctx, block, root, chunkSidecars, chunkAccessListSidecars); err != nil {
+		return nil, status.Errorf(codes.Internal, "Could not broadcast/receive chunks: %v", err)
 	}
 	if err := <-errChan; err != nil {
 		return nil, status.Errorf(codes.Internal, "Could not broadcast/receive block: %v", err)

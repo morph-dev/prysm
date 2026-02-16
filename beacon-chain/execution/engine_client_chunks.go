@@ -29,7 +29,7 @@ func (s *Service) NewBlockHeader(
 	versionedHashes []common.Hash,
 	executionRequests *pb.ExecutionRequests,
 	chunkCount int,
-) (bool, error) {
+) error {
 	ctx, cancel := contextWithEngineTimeout(ctx)
 	defer cancel()
 
@@ -39,7 +39,7 @@ func (s *Service) NewBlockHeader(
 	case *pb.ExecutionPayloadHeaderGloas:
 		flattenedRequests, err := pb.EncodeExecutionRequests(executionRequests)
 		if err != nil {
-			return false, errors.Wrap(err, "failed to encode execution requests")
+			return errors.Wrap(err, "failed to encode execution requests")
 		}
 
 		err = s.rpcClient.CallContext(
@@ -52,25 +52,25 @@ func (s *Service) NewBlockHeader(
 			flattenedRequests,
 		)
 		if err != nil {
-			return false, handleRPCError(err)
+			return handleRPCError(err)
 		}
 	default:
-		return false, errors.New("unknown execution data type")
+		return errors.New("unknown execution data type")
 	}
 
 	switch result.Status {
 	case pb.PayloadStatus_ACCEPTED:
-		return true, nil
+		return nil
 	case pb.PayloadStatus_INVALID:
-		return false, ErrInvalidPayloadStatus
+		return ErrInvalidPayloadStatus
 	case pb.PayloadStatus_SYNCING:
-		return false, errors.New("payload status is SYNCING")
+		return errors.New("payload status is SYNCING")
 	default:
-		return false, errors.Errorf("unknown payload status: %s", result.Status.String())
+		return errors.Errorf("unknown payload status: %s", result.Status.String())
 	}
 }
 
-func (s *Service) NewChunkAccessList(ctx context.Context, blockHash common.Hash, chunkIndex uint16, chunkAccessList []byte) (bool, error) {
+func (s *Service) NewChunkAccessList(ctx context.Context, blockHash common.Hash, chunkIndex uint16, chunkAccessList []byte) error {
 	ctx, cancel := contextWithEngineTimeout(ctx)
 	defer cancel()
 
@@ -78,20 +78,20 @@ func (s *Service) NewChunkAccessList(ctx context.Context, blockHash common.Hash,
 
 	err := s.rpcClient.CallContext(ctx, result, NewChunkAccessListMethodV1, blockHash, chunkIndex, chunkAccessList)
 	if err != nil {
-		return false, handleRPCError(err)
+		return handleRPCError(err)
 	}
 
 	switch result.Status {
 	case pb.PayloadStatus_ACCEPTED:
-		return true, nil
+		return nil
 	case pb.PayloadStatus_INVALID:
-		return false, ErrInvalidPayloadStatus
+		return ErrInvalidPayloadStatus
 	default:
-		return false, errors.Errorf("unknown payload status: %s", result.Status.String())
+		return errors.Errorf("unknown payload status: %s", result.Status.String())
 	}
 }
 
-func (s *Service) ExecuteChunk(ctx context.Context, blockHash common.Hash, chunk *pb.ExecutionChunk) (bool, error) {
+func (s *Service) ExecuteChunk(ctx context.Context, blockHash common.Hash, chunk *pb.ExecutionChunk) error {
 	ctx, cancel := contextWithEngineTimeout(ctx)
 	defer cancel()
 
@@ -99,18 +99,18 @@ func (s *Service) ExecuteChunk(ctx context.Context, blockHash common.Hash, chunk
 
 	err := s.rpcClient.CallContext(ctx, result, NewExecuteChunkMethodV1, blockHash, chunk)
 	if err != nil {
-		return false, handleRPCError(err)
+		return handleRPCError(err)
 	}
 
 	switch result.Status {
 	case pb.PayloadStatus_VALID:
-		return true, nil
+		return nil
 	case pb.PayloadStatus_INVALID:
-		return false, ErrInvalidPayloadStatus
+		return ErrInvalidPayloadStatus
 	case pb.PayloadStatus_INSUFFICIENT_INFORMATION:
-		return false, errors.New("payload status is INSUFFICIENT_INFORMATION")
+		return errors.New("payload status is INSUFFICIENT_INFORMATION")
 	default:
-		return false, errors.Errorf("unknown payload status: %s", result.Status.String())
+		return errors.Errorf("unknown payload status: %s", result.Status.String())
 	}
 }
 

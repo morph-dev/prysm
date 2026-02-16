@@ -986,6 +986,7 @@ func (b *BeaconNode) registerRPCService(router *http.ServeMux) error {
 		PayloadIDCache:            b.payloadIDCache,
 		LCStore:                   b.lcStore,
 		ChunkCache:                b.chunkCache,
+		ChunkReceiver:             chainService,
 	})
 
 	return b.services.RegisterService(rpcService)

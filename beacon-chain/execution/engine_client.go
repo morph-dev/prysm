@@ -145,9 +145,9 @@ type EngineCaller interface {
 	GetTerminalBlockHash(ctx context.Context, transitionTime uint64) ([]byte, bool, error)
 
 	// Added in Gloas
-	NewBlockHeader(ctx context.Context, payload interfaces.ExecutionData, parentBlockRoot *common.Hash, versionedHashes []common.Hash, executionRequests *pb.ExecutionRequests, chunkCount int) (bool, error)
-	NewChunkAccessList(ctx context.Context, blockHash common.Hash, chunkIndex uint16, chunkAccessList []byte) (bool, error)
-	ExecuteChunk(ctx context.Context, blockHash common.Hash, chunk *pb.ExecutionChunk) (bool, error)
+	NewBlockHeader(ctx context.Context, payload interfaces.ExecutionData, parentBlockRoot *common.Hash, versionedHashes []common.Hash, executionRequests *pb.ExecutionRequests, chunkCount int) error
+	NewChunkAccessList(ctx context.Context, blockHash common.Hash, chunkIndex uint16, chunkAccessList []byte) error
+	ExecuteChunk(ctx context.Context, blockHash common.Hash, chunk *pb.ExecutionChunk) error
 	FinalizeBlock(ctx context.Context, blockHash common.Hash) ([]byte, error)
 }
 

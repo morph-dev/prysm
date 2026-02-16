@@ -70,6 +70,7 @@ type Service struct {
 	startWaitingDataColumnSidecars chan bool // for testing purposes only
 	syncCommitteeHeadState         *cache.SyncCommitteeHeadStateCache
 	chunkCache                     *cache.ChunkCache
+	chunkNotifiers                 *ChunkNotifiers
 }
 
 // config options for the service.
@@ -179,6 +180,9 @@ func NewService(ctx context.Context, opts ...Option) (*Service, error) {
 		notifiers: make(map[[32]byte]chan uint64),
 		seenIndex: make(map[[32]byte][]bool),
 	}
+	cn := &ChunkNotifiers{
+		notifiers: make(map[[32]byte]*chunkNotifier),
+	}
 	srv := &Service{
 		ctx:                    ctx,
 		cancel:                 cancel,
@@ -189,6 +193,7 @@ func NewService(ctx context.Context, opts ...Option) (*Service, error) {
 		cfg:                    &config{},
 		blockBeingSynced:       &currentlySyncingBlock{roots: make(map[[32]byte]struct{})},
 		syncCommitteeHeadState: cache.NewSyncCommitteeHeadState(),
+		chunkNotifiers:         cn,
 	}
 	for _, opt := range opts {
 		if err := opt(srv); err != nil {

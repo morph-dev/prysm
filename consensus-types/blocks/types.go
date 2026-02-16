@@ -36,6 +36,8 @@ var (
 	errIncorrectBodyVersion  = errors.New(incorrectBodyVersion)
 	errNilBlockHeader        = errors.New("received nil beacon block header")
 	errMissingBlockSignature = errors.New("received nil beacon block signature")
+	errNilChunk              = errors.New("received nil chunk sidecar")
+	errNilCal                = errors.New("received nil cal sidecar")
 )
 
 // BeaconBlockBody is the main beacon block body structure. It can represent any block type.

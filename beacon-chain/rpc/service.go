@@ -126,6 +126,7 @@ type Config struct {
 	PayloadIDCache            *cache.PayloadIDCache
 	LCStore                   *lightClient.Store
 	ChunkCache                *cache.ChunkCache
+	ChunkReceiver             blockchain.ChunkReceiver
 }
 
 // NewService instantiates a new RPC service instance that will
@@ -258,6 +259,7 @@ func NewService(ctx context.Context, cfg *Config) *Service {
 		PayloadIDCache:          s.cfg.PayloadIDCache,
 		AttestationStateFetcher: s.cfg.AttestationReceiver,
 		ChunkCache:              s.cfg.ChunkCache,
+		ChunkReceiver:           s.cfg.ChunkReceiver,
 	}
 	s.validatorServer = validatorServer
 	nodeServer := &nodev1alpha1.Server{

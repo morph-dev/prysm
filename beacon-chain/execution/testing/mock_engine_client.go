@@ -174,13 +174,13 @@ func (e *EngineClient) GetTerminalBlockHash(ctx context.Context, transitionTime 
 	}
 }
 
-func (s *EngineClient) NewBlockHeader(ctx context.Context, payload interfaces.ExecutionData, parentBlockRoot *common.Hash, versionedHashes []common.Hash, executionRequests *pb.ExecutionRequests, chunkCount int) (bool, error) {
+func (s *EngineClient) NewBlockHeader(ctx context.Context, payload interfaces.ExecutionData, parentBlockRoot *common.Hash, versionedHashes []common.Hash, executionRequests *pb.ExecutionRequests, chunkCount int) error {
 	panic("not implemented")
 }
-func (s *EngineClient) NewChunkAccessList(ctx context.Context, blockHash common.Hash, chunkIndex uint16, chunkAccessList []byte) (bool, error) {
+func (s *EngineClient) NewChunkAccessList(ctx context.Context, blockHash common.Hash, chunkIndex uint16, chunkAccessList []byte) error {
 	panic("not implemented")
 }
-func (s *EngineClient) ExecuteChunk(ctx context.Context, blockHash common.Hash, chunk *pb.ExecutionChunk) (bool, error) {
+func (s *EngineClient) ExecuteChunk(ctx context.Context, blockHash common.Hash, chunk *pb.ExecutionChunk) error {
 	panic("not implemented")
 }
 func (s *EngineClient) FinalizeBlock(ctx context.Context, blockHash common.Hash) ([]byte, error) {
