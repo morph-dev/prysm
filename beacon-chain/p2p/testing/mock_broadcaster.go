@@ -68,6 +68,15 @@ func (m *MockBroadcaster) BroadcastDataColumnSidecars(context.Context, []blocks.
 	return nil
 }
 
+func (m *MockBroadcaster) BroadcastExecutionChunkSidecars(ctx context.Context, chunks []*ethpb.ExecutionChunkSidecar) error {
+	m.BroadcastCalled.Store(true)
+	return nil
+}
+func (m *MockBroadcaster) BroadcastChunkAccessListSidecars(ctx context.Context, cals []*ethpb.ChunkAccessListSidecar) error {
+	m.BroadcastCalled.Store(true)
+	return nil
+}
+
 // NumMessages returns the number of messages broadcasted.
 func (m *MockBroadcaster) NumMessages() int {
 	m.msgLock.Lock()

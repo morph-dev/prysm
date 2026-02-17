@@ -173,6 +173,13 @@ func (*FakeP2P) BroadcastDataColumnSidecars(_ context.Context, _ []blocks.Verifi
 	return nil
 }
 
+func (*FakeP2P) BroadcastExecutionChunkSidecars(ctx context.Context, chunks []*ethpb.ExecutionChunkSidecar) error {
+	return nil
+}
+func (*FakeP2P) BroadcastChunkAccessListSidecars(ctx context.Context, cals []*ethpb.ChunkAccessListSidecar) error {
+	return nil
+}
+
 // InterceptPeerDial -- fake.
 func (*FakeP2P) InterceptPeerDial(peer.ID) (allow bool) {
 	return true

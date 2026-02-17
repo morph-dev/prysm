@@ -4,22 +4,15 @@ import (
 	"context"
 	"fmt"
 
-	eth "github.com/OffchainLabs/prysm/v6/proto/prysm/v1alpha1"
-	"github.com/pkg/errors"
+	"github.com/OffchainLabs/prysm/v6/consensus-types/blocks"
 	"google.golang.org/protobuf/proto"
 )
 
-func (s *Service) chunkAccessListSubscriber(_ context.Context, msg proto.Message) error {
-	chunkAccessList, ok := msg.(*eth.ChunkAccessListSidecar)
+func (s *Service) chunkAccessListSubscriber(ctx context.Context, msg proto.Message) error {
+	cal, ok := msg.(blocks.VerifiedROChunkAccessList)
 	if !ok {
-		return fmt.Errorf("message was not type *eth.ChunkAccessList, type=%T", msg)
+		return fmt.Errorf("message was not type blocks.VerifiedROChunkAccessList, type=%T", msg)
 	}
-	if chunkAccessList == nil {
-		return errors.New("nil chunk access list")
-	}
-
-	// TODO: eip-8101
-	// s.ChunkCache.Add(chunkAccessList.Slot, chunkAccessList.ChunkIndex, chunkAccessList.AccountChanges)
-
+	s.cfg.chain.ReceiveChunkAccessList(ctx, cal)
 	return nil
 }

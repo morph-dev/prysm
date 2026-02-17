@@ -8,6 +8,7 @@ import (
 	"github.com/OffchainLabs/prysm/v6/consensus-types/interfaces"
 	ethpb "github.com/OffchainLabs/prysm/v6/proto/prysm/v1alpha1"
 	"github.com/OffchainLabs/prysm/v6/runtime/version"
+	"golang.org/x/sync/errgroup"
 )
 
 // BuildChunkSidecars given a block, builds the chunk and chunk access list sidecars for the block.
@@ -68,7 +69,13 @@ func (vs *Server) broadcastReceiveChunks(
 	chunkSidecars []*ethpb.ExecutionChunkSidecar,
 	calSidecars []*ethpb.ChunkAccessListSidecar,
 ) error {
-	// TODO(EIP-8101): broadcast chunks and cals
+	wg, eCtx := errgroup.WithContext(ctx)
+	wg.Go(func() error {
+		return vs.P2P.BroadcastExecutionChunkSidecars(eCtx, chunkSidecars)
+	})
+	wg.Go(func() error {
+		return vs.P2P.BroadcastChunkAccessListSidecars(eCtx, calSidecars)
+	})
 
 	for _, cal := range calSidecars {
 		roCal, err := blocks.NewROChunkAccessList(cal)
@@ -85,6 +92,10 @@ func (vs *Server) broadcastReceiveChunks(
 		}
 		verifiedChunk := blocks.NewVerifiedROExecutionChunk(roChunk)
 		vs.ChunkReceiver.ReceiveExecutionChunk(ctx, verifiedChunk)
+	}
+
+	if err := wg.Wait(); err != nil {
+		log.WithError(err).Error("error broadcasting chunks")
 	}
 	return nil
 }

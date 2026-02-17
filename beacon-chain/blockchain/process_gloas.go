@@ -22,6 +22,9 @@ func (s *Service) validateExecutionBlockGloas(ctx context.Context, block blocks.
 	ctx, span := trace.StartSpan(ctx, "blockChain.validateExecutionBlockGloas")
 	defer span.End()
 
+	ctx, cancel := context.WithTimeout(ctx, slotDeadline)
+	defer cancel()
+
 	root := block.Root()
 	body := block.Block().Body()
 

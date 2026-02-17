@@ -15,13 +15,13 @@ option php_namespace = "Ethereum\\Eth\\v1alpha1";
 
 message ExecutionChunkSidecar {
   ethereum.engine.v1.ExecutionChunk chunk = 1;
-  repeated bytes inclusion_proof = 2 [(ethereum.eth.ext.ssz_size) = "8,32"];
+  repeated bytes inclusion_proof = 2 [(ethereum.eth.ext.ssz_size) = "13,32"];
   SignedBeaconBlockHeader signed_block_header = 3;
 }
 
 message ChunkAccessListSidecar {
   uint64 chunk_index = 1;
   bytes chunk_access_list = 2 [ (ethereum.eth.ext.ssz_max) = "16777216" ];
-  repeated bytes inclusion_proof = 3 [(ethereum.eth.ext.ssz_size) = "8,32"];
+  repeated bytes inclusion_proof = 3 [(ethereum.eth.ext.ssz_size) = "13,32"];
   SignedBeaconBlockHeader signed_block_header = 4;
 }

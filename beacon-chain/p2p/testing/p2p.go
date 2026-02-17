@@ -238,6 +238,15 @@ func (p *TestP2P) BroadcastDataColumnSidecars(context.Context, []blocks.Verified
 	return nil
 }
 
+func (p *TestP2P) BroadcastExecutionChunkSidecars(ctx context.Context, chunks []*ethpb.ExecutionChunkSidecar) error {
+	p.BroadcastCalled.Store(true)
+	return nil
+}
+func (p *TestP2P) BroadcastChunkAccessListSidecars(ctx context.Context, cals []*ethpb.ChunkAccessListSidecar) error {
+	p.BroadcastCalled.Store(true)
+	return nil
+}
+
 // SetStreamHandler for RPC.
 func (p *TestP2P) SetStreamHandler(topic string, handler network.StreamHandler) {
 	p.BHost.SetStreamHandler(protocol.ID(topic), handler)

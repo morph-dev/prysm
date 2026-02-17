@@ -94,6 +94,15 @@ func (mb *mockBroadcaster) BroadcastDataColumnSidecars(_ context.Context, _ []bl
 	return nil
 }
 
+func (mb *mockBroadcaster) BroadcastExecutionChunkSidecars(ctx context.Context, chunks []*ethpb.ExecutionChunkSidecar) error {
+	mb.broadcastCalled = true
+	return nil
+}
+func (mb *mockBroadcaster) BroadcastChunkAccessListSidecars(ctx context.Context, cals []*ethpb.ChunkAccessListSidecar) error {
+	mb.broadcastCalled = true
+	return nil
+}
+
 func (mb *mockBroadcaster) BroadcastBLSChanges(_ context.Context, _ []*ethpb.SignedBLSToExecutionChange) {
 }
 
