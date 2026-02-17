@@ -127,4 +127,5 @@ type ExecutionData interface {
 	WithdrawalsRoot() ([]byte, error)
 	BlockAccessList() ([]byte, error)
 	BlockAccessListHash() ([]byte, error)
+	ChunkCount() (uint16, error)
 }

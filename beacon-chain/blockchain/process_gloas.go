@@ -19,8 +19,6 @@ func (s *Service) validateExecutionBlockGloas(ctx context.Context, block blocks.
 		return false, errors.New("can't validate pre-Gloas block")
 	}
 
-	chunkCount := 1 // TODO(EIP-8101): Extract from ExecutionPayload
-
 	ctx, span := trace.StartSpan(ctx, "blockChain.validateExecutionBlockGloas")
 	defer span.End()
 
@@ -31,6 +29,11 @@ func (s *Service) validateExecutionBlockGloas(ctx context.Context, block blocks.
 	payload, err := body.Execution()
 	if err != nil {
 		return false, errors.Wrap(invalidBlock{error: err}, "could not get execution payload")
+	}
+
+	chunkCount, err := payload.ChunkCount()
+	if err != nil {
+		return false, errors.Wrap(invalidBlock{error: err}, "could not get chunk count from payload")
 	}
 
 	versionedHashes, err := kzgCommitmentsToVersionedHashes(body)

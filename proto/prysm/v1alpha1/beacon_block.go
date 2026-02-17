@@ -744,5 +744,7 @@ func (body *BeaconBlockBodyGloas) Copy() *BeaconBlockBodyGloas {
 		BlsToExecutionChanges:  CopySlice(body.BlsToExecutionChanges),
 		BlobKzgCommitments:     CopyBlobKZGs(body.BlobKzgCommitments),
 		ExecutionRequests:      CopyExecutionRequests(body.ExecutionRequests),
+		ChunkHeadersRoot:       bytesutil.SafeCopyBytes(body.ChunkHeadersRoot),
+		ChunkAccessListsRoot:   bytesutil.SafeCopyBytes(body.ChunkAccessListsRoot),
 	}
 }

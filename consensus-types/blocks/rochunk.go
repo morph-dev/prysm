@@ -49,7 +49,7 @@ type ROChunkAccessList struct {
 
 func roCalNilCheck(c *ethpb.ChunkAccessListSidecar) error {
 	if c == nil {
-		return errNilChunk
+		return errNilCal
 	}
 	return signedBlockHeaderNilCheck(c.SignedBlockHeader)
 }

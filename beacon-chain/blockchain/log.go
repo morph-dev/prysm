@@ -145,7 +145,13 @@ func logPayload(block interfaces.ReadOnlyBeaconBlock) error {
 		"blockNumber": payload.BlockNumber(),
 		"gasUtilized": fmt.Sprintf("%.2f", gasUtilized),
 	}
-	if block.Version() >= version.Capella {
+	if block.Version() >= version.Gloas {
+		chunkCount, err := payload.ChunkCount()
+		if err != nil {
+			return errors.Wrap(err, "could not get chunk count")
+		}
+		fields["chunk"] = chunkCount
+	} else if block.Version() >= version.Capella {
 		withdrawals, err := payload.Withdrawals()
 		if err != nil {
 			return errors.Wrap(err, "could not get withdrawals")

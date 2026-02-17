@@ -142,7 +142,7 @@ func (m *engineMock) GetTerminalBlockHash(context.Context, uint64) ([]byte, bool
 	return nil, false, nil
 }
 
-func (s *engineMock) NewBlockHeader(ctx context.Context, payload interfaces.ExecutionData, parentBlockRoot *common.Hash, versionedHashes []common.Hash, executionRequests *pb.ExecutionRequests, chunkCount int) error {
+func (s *engineMock) NewBlockHeader(ctx context.Context, payload interfaces.ExecutionData, parentBlockRoot *common.Hash, versionedHashes []common.Hash, executionRequests *pb.ExecutionRequests, chunkCount uint16) error {
 	panic("not implemented")
 }
 func (s *engineMock) NewChunkAccessList(ctx context.Context, blockHash common.Hash, chunkIndex uint16, chunkAccessList []byte) error {

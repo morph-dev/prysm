@@ -3040,7 +3040,7 @@ func (e *ExecutionPayloadHeaderGloas) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the ExecutionPayloadHeaderGloas object to a target array
 func (e *ExecutionPayloadHeaderGloas) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int(616)
+	offset := int(620)
 
 	// Field (0) 'ParentHash'
 	if size := len(e.ParentHash); size != 32 {
@@ -3120,21 +3120,24 @@ func (e *ExecutionPayloadHeaderGloas) MarshalSSZTo(buf []byte) (dst []byte, err 
 	// Field (14) 'ExcessBlobGas'
 	dst = ssz.MarshalUint64(dst, e.ExcessBlobGas)
 
-	// Field (15) 'TxHash'
+	// Field (15) 'ChunkCount'
+	dst = ssz.MarshalUint32(dst, e.ChunkCount)
+
+	// Field (16) 'TxHash'
 	if size := len(e.TxHash); size != 32 {
 		err = ssz.ErrBytesLengthFn("--.TxHash", size, 32)
 		return
 	}
 	dst = append(dst, e.TxHash...)
 
-	// Field (16) 'WithdrawalsRoot'
+	// Field (17) 'WithdrawalsRoot'
 	if size := len(e.WithdrawalsRoot); size != 32 {
 		err = ssz.ErrBytesLengthFn("--.WithdrawalsRoot", size, 32)
 		return
 	}
 	dst = append(dst, e.WithdrawalsRoot...)
 
-	// Field (17) 'BlockAccessListHash'
+	// Field (18) 'BlockAccessListHash'
 	if size := len(e.BlockAccessListHash); size != 32 {
 		err = ssz.ErrBytesLengthFn("--.BlockAccessListHash", size, 32)
 		return
@@ -3155,7 +3158,7 @@ func (e *ExecutionPayloadHeaderGloas) MarshalSSZTo(buf []byte) (dst []byte, err 
 func (e *ExecutionPayloadHeaderGloas) UnmarshalSSZ(buf []byte) error {
 	var err error
 	size := uint64(len(buf))
-	if size < 616 {
+	if size < 620 {
 		return ssz.ErrSize
 	}
 
@@ -3215,7 +3218,7 @@ func (e *ExecutionPayloadHeaderGloas) UnmarshalSSZ(buf []byte) error {
 		return ssz.ErrOffset
 	}
 
-	if o10 != 616 {
+	if o10 != 620 {
 		return ssz.ErrInvalidVariableOffset
 	}
 
@@ -3237,23 +3240,26 @@ func (e *ExecutionPayloadHeaderGloas) UnmarshalSSZ(buf []byte) error {
 	// Field (14) 'ExcessBlobGas'
 	e.ExcessBlobGas = ssz.UnmarshallUint64(buf[512:520])
 
-	// Field (15) 'TxHash'
+	// Field (15) 'ChunkCount'
+	e.ChunkCount = ssz.UnmarshallUint32(buf[520:524])
+
+	// Field (16) 'TxHash'
 	if cap(e.TxHash) == 0 {
-		e.TxHash = make([]byte, 0, len(buf[520:552]))
+		e.TxHash = make([]byte, 0, len(buf[524:556]))
 	}
-	e.TxHash = append(e.TxHash, buf[520:552]...)
+	e.TxHash = append(e.TxHash, buf[524:556]...)
 
-	// Field (16) 'WithdrawalsRoot'
+	// Field (17) 'WithdrawalsRoot'
 	if cap(e.WithdrawalsRoot) == 0 {
-		e.WithdrawalsRoot = make([]byte, 0, len(buf[552:584]))
+		e.WithdrawalsRoot = make([]byte, 0, len(buf[556:588]))
 	}
-	e.WithdrawalsRoot = append(e.WithdrawalsRoot, buf[552:584]...)
+	e.WithdrawalsRoot = append(e.WithdrawalsRoot, buf[556:588]...)
 
-	// Field (17) 'BlockAccessListHash'
+	// Field (18) 'BlockAccessListHash'
 	if cap(e.BlockAccessListHash) == 0 {
-		e.BlockAccessListHash = make([]byte, 0, len(buf[584:616]))
+		e.BlockAccessListHash = make([]byte, 0, len(buf[588:620]))
 	}
-	e.BlockAccessListHash = append(e.BlockAccessListHash, buf[584:616]...)
+	e.BlockAccessListHash = append(e.BlockAccessListHash, buf[588:620]...)
 
 	// Field (10) 'ExtraData'
 	{
@@ -3271,7 +3277,7 @@ func (e *ExecutionPayloadHeaderGloas) UnmarshalSSZ(buf []byte) error {
 
 // SizeSSZ returns the ssz encoded size in bytes for the ExecutionPayloadHeaderGloas object
 func (e *ExecutionPayloadHeaderGloas) SizeSSZ() (size int) {
-	size = 616
+	size = 620
 
 	// Field (10) 'ExtraData'
 	size += len(e.ExtraData)
@@ -3374,21 +3380,24 @@ func (e *ExecutionPayloadHeaderGloas) HashTreeRootWith(hh *ssz.Hasher) (err erro
 	// Field (14) 'ExcessBlobGas'
 	hh.PutUint64(e.ExcessBlobGas)
 
-	// Field (15) 'TxHash'
+	// Field (15) 'ChunkCount'
+	hh.PutUint32(e.ChunkCount)
+
+	// Field (16) 'TxHash'
 	if size := len(e.TxHash); size != 32 {
 		err = ssz.ErrBytesLengthFn("--.TxHash", size, 32)
 		return
 	}
 	hh.PutBytes(e.TxHash)
 
-	// Field (16) 'WithdrawalsRoot'
+	// Field (17) 'WithdrawalsRoot'
 	if size := len(e.WithdrawalsRoot); size != 32 {
 		err = ssz.ErrBytesLengthFn("--.WithdrawalsRoot", size, 32)
 		return
 	}
 	hh.PutBytes(e.WithdrawalsRoot)
 
-	// Field (17) 'BlockAccessListHash'
+	// Field (18) 'BlockAccessListHash'
 	if size := len(e.BlockAccessListHash); size != 32 {
 		err = ssz.ErrBytesLengthFn("--.BlockAccessListHash", size, 32)
 		return

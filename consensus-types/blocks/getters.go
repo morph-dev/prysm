@@ -365,6 +365,7 @@ func (b *SignedBeaconBlock) ToBlinded() (interfaces.ReadOnlySignedBeaconBlock, e
 			ExtraData:       header.ExtraData,
 			BaseFeePerGas:   header.BaseFeePerGas,
 			BlockHash:       header.BlockHash,
+			ChunkCount:      header.ChunkCount,
 			TxHash:          header.TxHash,
 			WithdrawalsRoot: header.WithdrawalsRoot,
 			BlobGasUsed:     header.BlobGasUsed,

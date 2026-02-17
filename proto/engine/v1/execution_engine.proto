@@ -188,9 +188,10 @@ message ExecutionPayloadHeaderGloas {
   uint64 excess_blob_gas = 17;
 
   // EIP-8101 fields
-  bytes tx_hash = 18 [ (ethereum.eth.ext.ssz_size) = "32" ];
-  bytes withdrawals_root = 19 [ (ethereum.eth.ext.ssz_size) = "32" ];
-  bytes block_access_list_hash = 20 [ (ethereum.eth.ext.ssz_size) = "32" ];
+  uint32 chunk_count = 18;
+  bytes tx_hash = 19 [ (ethereum.eth.ext.ssz_size) = "32" ];
+  bytes withdrawals_root = 20 [ (ethereum.eth.ext.ssz_size) = "32" ];
+  bytes block_access_list_hash = 21 [ (ethereum.eth.ext.ssz_size) = "32" ];
 }
 
 message PayloadAttributes {

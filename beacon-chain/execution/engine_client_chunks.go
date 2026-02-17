@@ -8,6 +8,7 @@ import (
 	"github.com/OffchainLabs/prysm/v6/consensus-types/interfaces"
 	pb "github.com/OffchainLabs/prysm/v6/proto/engine/v1"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/pkg/errors"
 )
 
@@ -18,8 +19,8 @@ const (
 	NewBlockHeaderMethodV1 = "engine_newBlockHeaderV1"
 	// NewChunkAccessListV1 request string for JSON-RPC (added in gloas)
 	NewChunkAccessListMethodV1 = "engine_newChunkAccessListV1"
-	// NewExecuteChunkV1 request string for JSON-RPC (added in gloas)
-	NewExecuteChunkMethodV1 = "engine_newExecuteChunkV1"
+	// ExecuteChunkV1 request string for JSON-RPC (added in gloas)
+	ExecuteChunkMethodV1 = "engine_executeChunkV1"
 )
 
 func (s *Service) NewBlockHeader(
@@ -28,7 +29,7 @@ func (s *Service) NewBlockHeader(
 	parentBlockRoot *common.Hash,
 	versionedHashes []common.Hash,
 	executionRequests *pb.ExecutionRequests,
-	chunkCount int,
+	chunkCount uint16,
 ) error {
 	ctx, cancel := contextWithEngineTimeout(ctx)
 	defer cancel()
@@ -76,7 +77,8 @@ func (s *Service) NewChunkAccessList(ctx context.Context, blockHash common.Hash,
 
 	result := &pb.PayloadStatus{}
 
-	err := s.rpcClient.CallContext(ctx, result, NewChunkAccessListMethodV1, blockHash, chunkIndex, chunkAccessList)
+	chunkAccessListBytes := hexutil.Bytes(chunkAccessList)
+	err := s.rpcClient.CallContext(ctx, result, NewChunkAccessListMethodV1, blockHash, chunkIndex, chunkAccessListBytes)
 	if err != nil {
 		return handleRPCError(err)
 	}
@@ -97,7 +99,7 @@ func (s *Service) ExecuteChunk(ctx context.Context, blockHash common.Hash, chunk
 
 	result := &pb.PayloadStatus{}
 
-	err := s.rpcClient.CallContext(ctx, result, NewExecuteChunkMethodV1, blockHash, chunk)
+	err := s.rpcClient.CallContext(ctx, result, ExecuteChunkMethodV1, blockHash, chunk)
 	if err != nil {
 		return handleRPCError(err)
 	}

@@ -369,9 +369,10 @@ type ExecutionPayloadHeaderGloasJSON struct {
 	ExcessBlobGas *hexutil.Uint64 `json:"excessBlobGas"`
 	BlockHash     *common.Hash    `json:"blockHash"`
 	// EIP-8101
-	TxHash              *common.Hash `json:"txHash"`
-	WithdrawalsRoot     *common.Hash `json:"withdrawalsRoot"`
-	BlockAccessListHash *common.Hash `json:"blockAccessListHash"`
+	ChunkCount          *hexutil.Uint `json:"chunkCount"`
+	TxHash              *common.Hash  `json:"txHash"`
+	WithdrawalsRoot     *common.Hash  `json:"withdrawalsRoot"`
+	BlockAccessListHash *common.Hash  `json:"blockAccessListHash"`
 }
 
 // WithdrawalRequestV1 represents an execution engine WithdrawalRequestV1 value
@@ -962,6 +963,7 @@ func (e *ExecutionPayloadHeaderGloas) MarshalJSON() ([]byte, error) {
 	excessBlobGas := hexutil.Uint64(e.ExcessBlobGas)
 
 	// EIP-8101
+	chunkCount := hexutil.Uint(e.ChunkCount)
 	txHash := common.BytesToHash(e.TxHash)
 	withdrawalsRoot := common.BytesToHash(e.WithdrawalsRoot)
 	blockAccessListHash := common.BytesToHash(e.BlockAccessListHash)
@@ -982,6 +984,7 @@ func (e *ExecutionPayloadHeaderGloas) MarshalJSON() ([]byte, error) {
 		BlobGasUsed:         &blobGasUsed,
 		ExcessBlobGas:       &excessBlobGas,
 		BlockHash:           &bHash,
+		ChunkCount:          &chunkCount,
 		TxHash:              &txHash,
 		WithdrawalsRoot:     &withdrawalsRoot,
 		BlockAccessListHash: &blockAccessListHash,
@@ -1568,6 +1571,7 @@ func (e *ExecutionBundleGloas) UnmarshalJSON(enc []byte) error {
 
 	// EIP-8101
 	// TODO(EIP-8101): EL uses merkle root, CL uses ssz root
+	e.Payload.ChunkCount = uint32(*dec.ExecutionPayload.ChunkCount)
 	e.Payload.TxHash = dec.ExecutionPayload.TxHash.Bytes()
 	e.Payload.WithdrawalsRoot = dec.ExecutionPayload.WithdrawalsRoot.Bytes()
 	e.Payload.BlockAccessListHash = dec.ExecutionPayload.BlockAccessListHash.Bytes()

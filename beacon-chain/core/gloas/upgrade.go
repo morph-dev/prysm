@@ -155,6 +155,7 @@ func UpgradeToGloas(ctx context.Context, beaconState state.BeaconState) (state.B
 			BlockHash:           payloadHeader.BlockHash(),
 			BlobGasUsed:         blobGasUsed,
 			ExcessBlobGas:       excessBlobGas,
+			ChunkCount:          0,
 			TxHash:              txRoot,
 			WithdrawalsRoot:     wdRoot,
 			BlockAccessListHash: make([]byte, 32),

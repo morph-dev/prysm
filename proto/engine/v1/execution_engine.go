@@ -238,6 +238,7 @@ func (payload *ExecutionPayloadHeaderGloas) Copy() *ExecutionPayloadHeaderGloas 
 		BlockHash:           bytesutil.SafeCopyBytes(payload.BlockHash),
 		BlobGasUsed:         payload.BlobGasUsed,
 		ExcessBlobGas:       payload.ExcessBlobGas,
+		ChunkCount:          payload.ChunkCount,
 		TxHash:              payload.TxHash,
 		WithdrawalsRoot:     payload.WithdrawalsRoot,
 		BlockAccessListHash: payload.BlockAccessListHash,

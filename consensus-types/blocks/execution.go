@@ -216,6 +216,10 @@ func (e executionPayload) BlockAccessListHash() ([]byte, error) {
 	return nil, consensus_types.ErrUnsupportedField
 }
 
+func (e executionPayload) ChunkCount() (uint16, error) {
+	return 0, consensus_types.ErrUnsupportedField
+}
+
 // executionPayloadHeader is a convenience wrapper around a blinded beacon block body's execution header data structure
 // This wrapper allows us to conform to a common interface so that beacon
 // blocks for future forks can also be applied across Prysm without issues.
@@ -380,6 +384,10 @@ func (e executionPayloadHeader) BlockAccessList() ([]byte, error) {
 
 func (e executionPayloadHeader) BlockAccessListHash() ([]byte, error) {
 	return nil, consensus_types.ErrUnsupportedField
+}
+
+func (e executionPayloadHeader) ChunkCount() (uint16, error) {
+	return 0, consensus_types.ErrUnsupportedField
 }
 
 // PayloadToHeader converts `payload` into execution payload header format.
@@ -576,6 +584,10 @@ func (e executionPayloadCapella) BlockAccessListHash() ([]byte, error) {
 	return nil, consensus_types.ErrUnsupportedField
 }
 
+func (e executionPayloadCapella) ChunkCount() (uint16, error) {
+	return 0, consensus_types.ErrUnsupportedField
+}
+
 // executionPayloadHeaderCapella is a convenience wrapper around a blinded beacon block body's execution header data structure
 // This wrapper allows us to conform to a common interface so that beacon
 // blocks for future forks can also be applied across Prysm without issues.
@@ -742,6 +754,10 @@ func (e executionPayloadHeaderCapella) BlockAccessListHash() ([]byte, error) {
 	return nil, consensus_types.ErrUnsupportedField
 }
 
+func (e executionPayloadHeaderCapella) ChunkCount() (uint16, error) {
+	return 0, consensus_types.ErrUnsupportedField
+}
+
 // PayloadToHeaderCapella converts `payload` into execution payload header format.
 func PayloadToHeaderCapella(payload interfaces.ExecutionData) (*enginev1.ExecutionPayloadHeaderCapella, error) {
 	txs, err := payload.Transactions()
@@ -830,6 +846,10 @@ func PayloadToHeaderDeneb(payload interfaces.ExecutionData) (*enginev1.Execution
 
 // PayloadToHeaderGloas converts `payload` into execution payload header format.
 func PayloadToHeaderGloas(payload interfaces.ExecutionData) (*enginev1.ExecutionPayloadHeaderGloas, error) {
+	chunkCount, err := payload.ChunkCount()
+	if err != nil {
+		return nil, err
+	}
 	txRoot, err := payload.TransactionsRoot()
 	if err != nil {
 		return nil, err
@@ -870,6 +890,7 @@ func PayloadToHeaderGloas(payload interfaces.ExecutionData) (*enginev1.Execution
 		BlobGasUsed:         blobGasUsed,
 		ExcessBlobGas:       excessBlobGas,
 		BlockAccessListHash: bytesutil.SafeCopyBytes(blockAccessListHash),
+		ChunkCount:          uint32(chunkCount),
 	}, nil
 }
 
@@ -1104,6 +1125,10 @@ func (e executionPayloadHeaderDeneb) BlockAccessListHash() ([]byte, error) {
 	return nil, consensus_types.ErrUnsupportedField
 }
 
+func (e executionPayloadHeaderDeneb) ChunkCount() (uint16, error) {
+	return 0, consensus_types.ErrUnsupportedField
+}
+
 // executionPayloadDeneb is a convenience wrapper around a beacon block body's execution payload data structure
 // This wrapper allows us to conform to a common interface so that beacon
 // blocks for future forks can also be applied across Prysm without issues.
@@ -1268,6 +1293,10 @@ func (e executionPayloadDeneb) BlockAccessListHash() ([]byte, error) {
 	return nil, consensus_types.ErrUnsupportedField
 }
 
+func (e executionPayloadDeneb) ChunkCount() (uint16, error) {
+	return 0, consensus_types.ErrUnsupportedField
+}
+
 // executionPayloadHeaderGloas is a convenience wrapper around a beacon block body's execution payload data structure
 // This wrapper allows us to conform to a common interface so that beacon
 // blocks for future forks can also be applied across Prysm without issues.
@@ -1429,4 +1458,8 @@ func (e executionPayloadHeaderGloas) BlockAccessList() ([]byte, error) {
 
 func (e executionPayloadHeaderGloas) BlockAccessListHash() ([]byte, error) {
 	return e.p.BlockAccessListHash, nil
+}
+
+func (e executionPayloadHeaderGloas) ChunkCount() (uint16, error) {
+	return uint16(e.p.ChunkCount), nil
 }

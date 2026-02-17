@@ -721,6 +721,7 @@ func BuildSignedBeaconBlockFromExecutionPayload(blk interfaces.ReadOnlySignedBea
 						BlobGasUsed:   p.BlobGasUsed,
 						ExcessBlobGas: p.ExcessBlobGas,
 						// EIP-8101
+						ChunkCount:          p.ChunkCount,
 						TxHash:              p.TxHash,
 						WithdrawalsRoot:     p.WithdrawalsRoot,
 						BlockAccessListHash: p.BlockAccessListHash,

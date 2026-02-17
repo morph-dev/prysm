@@ -4,6 +4,7 @@ import (
 	"context"
 	"sync"
 
+	field_params "github.com/OffchainLabs/prysm/v6/config/fieldparams"
 	"github.com/OffchainLabs/prysm/v6/consensus-types/blocks"
 	"github.com/OffchainLabs/prysm/v6/consensus-types/primitives"
 	enginev1 "github.com/OffchainLabs/prysm/v6/proto/engine/v1"
@@ -20,8 +21,8 @@ func (s *Service) ReceiveExecutionChunk(ctx context.Context, chunk blocks.Verifi
 	s.chunkNotifiers.notifyChunk(chunk.BlockRoot(), chunk.Chunk)
 }
 
-func (s *Service) ReceiveChunkAccessList(ctx context.Context, chunk blocks.VerifiedROChunkAccessList) {
-	s.chunkNotifiers.notifyChunkAccessList(chunk.BlockRoot(), primitives.ChunkIndex(chunk.ChunkIndex), chunk.ChunkAccessList)
+func (s *Service) ReceiveChunkAccessList(ctx context.Context, cal blocks.VerifiedROChunkAccessList) {
+	s.chunkNotifiers.notifyChunkAccessList(cal.BlockRoot(), primitives.ChunkIndex(cal.ChunkIndex), cal.ChunkAccessList)
 }
 
 // Chunk Notifier
@@ -38,7 +39,7 @@ type chunkNotifier struct {
 
 func NewChunkNotifier() *chunkNotifier {
 	return &chunkNotifier{
-		channel:        make(chan ChunkDataNotification),
+		channel:        make(chan ChunkDataNotification, field_params.MaxChunksPerBlock),
 		chunkSeenIndex: make(map[primitives.ChunkIndex]bool),
 		calSeenIndex:   make(map[primitives.ChunkIndex]bool),
 	}

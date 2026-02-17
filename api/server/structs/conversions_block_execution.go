@@ -1014,6 +1014,7 @@ func ExecutionPayloadHeaderGloasFromConsensus(payload *enginev1.ExecutionPayload
 		BlockHash:           hexutil.Encode(payload.BlockHash),
 		BlobGasUsed:         fmt.Sprintf("%d", payload.BlobGasUsed),
 		ExcessBlobGas:       fmt.Sprintf("%d", payload.ExcessBlobGas),
+		ChunkCount:          fmt.Sprintf("%d", payload.ChunkCount),
 		TxHash:              hexutil.Encode(payload.TxHash),
 		WithdrawalsRoot:     hexutil.Encode(payload.WithdrawalsRoot),
 		BlockAccessListHash: hexutil.Encode(payload.BlockAccessListHash),
@@ -1084,6 +1085,10 @@ func (e *ExecutionPayloadHeaderGloas) ToConsensus() (*enginev1.ExecutionPayloadH
 	if err != nil {
 		return nil, server.NewDecodeError(err, "ExecutionPayload.ExcessBlobGas")
 	}
+	payloadChunkCount, err := strconv.ParseUint(e.ChunkCount, 10, 32)
+	if err != nil {
+		return nil, server.NewDecodeError(err, "ExecutionPayload.ChunkCount")
+	}
 	payloadTxHash, err := bytesutil.DecodeHexWithLength(e.TxHash, fieldparams.RootLength)
 	if err != nil {
 		return nil, server.NewDecodeError(err, "ExecutionPayload.TxHash")
@@ -1112,6 +1117,7 @@ func (e *ExecutionPayloadHeaderGloas) ToConsensus() (*enginev1.ExecutionPayloadH
 		BlockHash:           payloadBlockHash,
 		BlobGasUsed:         payloadBlobGasUsed,
 		ExcessBlobGas:       payloadExcessBlobGas,
+		ChunkCount:          uint32(payloadChunkCount),
 		TxHash:              payloadTxHash,
 		WithdrawalsRoot:     payloadWithdrawalsRoot,
 		BlockAccessListHash: payloadBlockAccessListHash,

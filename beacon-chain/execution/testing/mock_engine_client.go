@@ -174,7 +174,7 @@ func (e *EngineClient) GetTerminalBlockHash(ctx context.Context, transitionTime 
 	}
 }
 
-func (s *EngineClient) NewBlockHeader(ctx context.Context, payload interfaces.ExecutionData, parentBlockRoot *common.Hash, versionedHashes []common.Hash, executionRequests *pb.ExecutionRequests, chunkCount int) error {
+func (s *EngineClient) NewBlockHeader(ctx context.Context, payload interfaces.ExecutionData, parentBlockRoot *common.Hash, versionedHashes []common.Hash, executionRequests *pb.ExecutionRequests, chunkCount uint16) error {
 	panic("not implemented")
 }
 func (s *EngineClient) NewChunkAccessList(ctx context.Context, blockHash common.Hash, chunkIndex uint16, chunkAccessList []byte) error {

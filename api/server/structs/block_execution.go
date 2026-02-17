@@ -179,6 +179,7 @@ type ExecutionPayloadHeaderGloas struct {
 
 	// Transactions  []string      `json:"transactions"`
 	// Withdrawals   []*Withdrawal `json:"withdrawals"`
+	ChunkCount          string `json:"chunkCount"`
 	TxHash              string `json:"tx_hash"`
 	WithdrawalsRoot     string `json:"withdrawals_root"`
 	BlockAccessListHash string `json:"block_access_list_hash"`
