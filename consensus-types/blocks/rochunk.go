@@ -65,7 +65,7 @@ func NewROChunkAccessList(c *ethpb.ChunkAccessListSidecar) (ROChunkAccessList, e
 }
 
 // BlockRoot returns the root of the block.
-func (b *VerifiedROChunkAccessList) BlockRoot() [32]byte {
+func (b *ROChunkAccessList) BlockRoot() [32]byte {
 	return b.root
 }
 

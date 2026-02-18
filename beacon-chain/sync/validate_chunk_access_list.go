@@ -5,6 +5,7 @@ import (
 
 	"github.com/OffchainLabs/prysm/v6/beacon-chain/p2p"
 	"github.com/OffchainLabs/prysm/v6/consensus-types/blocks"
+	"github.com/OffchainLabs/prysm/v6/consensus-types/primitives"
 	eth "github.com/OffchainLabs/prysm/v6/proto/prysm/v1alpha1"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
 	"github.com/libp2p/go-libp2p/core/peer"
@@ -36,9 +37,17 @@ func (s *Service) validateChunkAccessList(ctx context.Context, pid peer.ID, msg 
 		return pubsub.ValidationReject, errors.Wrap(err, "RO cal conversion failure")
 	}
 
-	// TODO(EIP-8101): verify cal
+	blockRoot := cal.BlockRoot()
+	chunkIndex := primitives.ChunkIndex(cal.ChunkIndex)
+
+	if s.chunkCache.SeenChunkAccessList(blockRoot, chunkIndex) {
+		return pubsub.ValidationIgnore, nil
+	}
+
+	// TODO(EIP-8101): slot time?, signature, inclusion proof
 
 	msg.ValidatorData = blocks.NewVerifiedROChunkAccessList(cal)
+	s.chunkCache.AddChunkAccessList(blockRoot, chunkIndex)
 
 	return pubsub.ValidationAccept, nil
 }
