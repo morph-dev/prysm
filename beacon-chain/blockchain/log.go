@@ -82,6 +82,17 @@ func logStateTransitionData(b interfaces.ReadOnlyBeaconBlock) error {
 			}
 		}
 	}
+	if b.Version() >= version.Gloas {
+		p, err := b.Body().Execution()
+		if err != nil {
+			return err
+		}
+		chunkCount, err := p.ChunkCount()
+		if err != nil {
+			return err
+		}
+		log = log.WithField("chunkCount", chunkCount)
+	}
 	log.Info("Finished applying state transition")
 	return nil
 }
@@ -150,7 +161,7 @@ func logPayload(block interfaces.ReadOnlyBeaconBlock) error {
 		if err != nil {
 			return errors.Wrap(err, "could not get chunk count")
 		}
-		fields["chunk"] = chunkCount
+		fields["chunks"] = chunkCount
 	} else if block.Version() >= version.Capella {
 		withdrawals, err := payload.Withdrawals()
 		if err != nil {
@@ -165,6 +176,6 @@ func logPayload(block interfaces.ReadOnlyBeaconBlock) error {
 			fields["blsToExecutionChanges"] = len(changes)
 		}
 	}
-	log.WithFields(fields).Debug("Synced new payload")
+	log.WithFields(fields).Info("Synced new payload")
 	return nil
 }

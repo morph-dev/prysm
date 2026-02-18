@@ -105,7 +105,7 @@ func (s *Service) validateExecutionBlockGloas(ctx context.Context, block blocks.
 				calsAccepted[chunkIndex] = true
 			}
 		case <-ctx.Done():
-			return false, errors.Wrapf(ctx.Err(), "context deadline waiting for chunks: %d, BlockRoot: %#x", block.Block().Slot(), root)
+			return false, errors.Wrapf(ctx.Err(), "context deadline waiting for chunks slot: %d, BlockRoot: %#x", block.Block().Slot(), root)
 		default:
 			executedChunks := 0
 			for i := range chunkCount {
