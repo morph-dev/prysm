@@ -217,7 +217,8 @@ func (s *Service) beaconBlocksRootRPCHandler(ctx context.Context, msg interface{
 			continue
 		}
 
-		if blk.Block().IsBlinded() {
+		// TODO(EIP-8101): Figure out what to do in this case
+		if blk.Block().IsBlinded() && blk.Version() < version.Gloas {
 			blk, err = s.cfg.executionReconstructor.ReconstructFullBlock(ctx, blk)
 			if err != nil {
 				if errors.Is(err, execution.ErrEmptyBlockHash) {
