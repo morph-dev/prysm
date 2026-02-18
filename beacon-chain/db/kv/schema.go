@@ -58,6 +58,7 @@ var (
 	electraBlindKey            = []byte("blind-electra")
 	fuluKey                    = []byte("fulu")
 	fuluBlindKey               = []byte("blind-fulu")
+	gloasKey                   = []byte("gloas")
 
 	// block root included in the beacon state used by weak subjectivity initial sync
 	originCheckpointBlockRootKey = []byte("origin-checkpoint-block-root")

@@ -255,6 +255,10 @@ func (s *Store) saveStatesEfficientInternal(ctx context.Context, tx *bolt.Tx, bl
 			if err := s.processFulu(ctx, rawType, rt[:], bucket, valIdxBkt, validatorKeys[i]); err != nil {
 				return err
 			}
+		case *ethpb.BeaconStateGloas:
+			if err := s.processGloas(ctx, rawType, rt[:], bucket, valIdxBkt, validatorKeys[i]); err != nil {
+				return err
+			}
 		default:
 			return errors.New("invalid state type")
 		}
@@ -378,6 +382,24 @@ func (s *Store) processFulu(ctx context.Context, pbState *ethpb.BeaconStateFulu,
 		return err
 	}
 	encodedState := snappy.Encode(nil, append(fuluKey, rawObj...))
+	if err := bucket.Put(rootHash, encodedState); err != nil {
+		return err
+	}
+	pbState.Validators = valEntries
+	if err := valIdxBkt.Put(rootHash, validatorKey); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *Store) processGloas(ctx context.Context, pbState *ethpb.BeaconStateGloas, rootHash []byte, bucket, valIdxBkt *bolt.Bucket, validatorKey []byte) error {
+	valEntries := pbState.Validators
+	pbState.Validators = make([]*ethpb.Validator, 0)
+	rawObj, err := pbState.MarshalSSZ()
+	if err != nil {
+		return err
+	}
+	encodedState := snappy.Encode(nil, append(gloasKey, rawObj...))
 	if err := bucket.Put(rootHash, encodedState); err != nil {
 		return err
 	}
@@ -537,6 +559,19 @@ func (s *Store) unmarshalState(_ context.Context, enc []byte, validatorEntries [
 	}
 
 	switch {
+	case hasGloasKey(enc):
+		protoState := &ethpb.BeaconStateGloas{}
+		if err := protoState.UnmarshalSSZ(enc[len(gloasKey):]); err != nil {
+			return nil, errors.Wrap(err, "failed to unmarshal encoding for Gloas")
+		}
+		ok, err := s.isStateValidatorMigrationOver()
+		if err != nil {
+			return nil, err
+		}
+		if ok {
+			protoState.Validators = validatorEntries
+		}
+		return statenative.InitializeFromProtoUnsafeGloas(protoState)
 	case hasFuluKey(enc):
 		protoState := &ethpb.BeaconStateFulu{}
 		if err := protoState.UnmarshalSSZ(enc[len(fuluKey):]); err != nil {
@@ -722,6 +757,19 @@ func marshalState(ctx context.Context, st state.ReadOnlyBeaconState) ([]byte, er
 			return nil, err
 		}
 		return snappy.Encode(nil, append(fuluKey, rawObj...)), nil
+	case version.Gloas:
+		rState, ok := st.ToProtoUnsafe().(*ethpb.BeaconStateGloas)
+		if !ok {
+			return nil, errors.New("non valid inner state")
+		}
+		if rState == nil {
+			return nil, errors.New("nil state")
+		}
+		rawObj, err := rState.MarshalSSZ()
+		if err != nil {
+			return nil, err
+		}
+		return snappy.Encode(nil, append(gloasKey, rawObj...)), nil
 	default:
 		return nil, errors.New("invalid inner state")
 	}
