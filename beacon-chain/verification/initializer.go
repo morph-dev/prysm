@@ -72,6 +72,22 @@ func (ini *Initializer) NewDataColumnsVerifier(roDataColumns []blocks.RODataColu
 	}
 }
 
+// NewExecutionChunkVerifier creates a ExecutionChunkVerifier for a single execution chunk sidecar.
+func (ini *Initializer) NewExecutionChunkVerifier(chunk blocks.ROExecutionChunk) *ROExecutionChunkVerifier {
+	return &ROExecutionChunkVerifier{
+		sharedResources: ini.shared,
+		chunk:           chunk,
+	}
+}
+
+// NewChunkAccessListVerifier creates a ChunkAccessListVerifier for a single chunk access lit sidecar.
+func (ini *Initializer) NewChunkAccessListVerifier(cal blocks.ROChunkAccessList) *ROChunkAccessListVerifier {
+	return &ROChunkAccessListVerifier{
+		sharedResources: ini.shared,
+		cal:             cal,
+	}
+}
+
 // InitializerWaiter provides an Initializer once all dependent resources are ready
 // via the WaitForInitializer method.
 type InitializerWaiter struct {

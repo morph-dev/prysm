@@ -54,3 +54,41 @@ type DataColumnsVerifier interface {
 // NewDataColumnsVerifier is a function signature that can be used to mock a setup where a
 // column verifier can be easily initialized.
 type NewDataColumnsVerifier func(dataColumns []blocks.RODataColumn, reqs []Requirement) DataColumnsVerifier
+
+// ExecutionChunkVerifier defines the methods implemented by the ROExecutionChunkVerifier.
+type ExecutionChunkVerifier interface {
+	VerifiedROExecutionChunk() (blocks.VerifiedROExecutionChunk, error)
+
+	NotFromFutureSlot() (err error)
+	SlotAboveFinalized() (err error)
+	SidecarParentSeen(parentSeen func([32]byte) bool) (err error)
+	SidecarParentValid(badParent func([32]byte) bool) (err error)
+	SidecarParentSlotLower() (err error)
+	SidecarDescendsFromFinalized() (err error)
+	SidecarProposerExpected(ctx context.Context) (err error)
+	ValidProposerSignature(ctx context.Context) (err error)
+	SidecarInclusionProven() (err error)
+}
+
+// NewExecutionChunkVerifier is a function signature that can be used to mock a setup where a
+// execution chunk verifier can be easily initialized.
+type NewExecutionChunkVerifier func(chunk blocks.ROExecutionChunk) ExecutionChunkVerifier
+
+// ChunkAccessListVerifier defines the methods implemented by the ROChunkAccessListVerifier.
+type ChunkAccessListVerifier interface {
+	VerifiedROChunkAccessList() (blocks.VerifiedROChunkAccessList, error)
+
+	NotFromFutureSlot() (err error)
+	SlotAboveFinalized() (err error)
+	SidecarParentSeen(parentSeen func([32]byte) bool) (err error)
+	SidecarParentValid(badParent func([32]byte) bool) (err error)
+	SidecarParentSlotLower() (err error)
+	SidecarDescendsFromFinalized() (err error)
+	SidecarProposerExpected(ctx context.Context) (err error)
+	ValidProposerSignature(ctx context.Context) (err error)
+	SidecarInclusionProven() (err error)
+}
+
+// NewChunkAccessListVerifier is a function signature that can be used to mock a setup where a
+// chunk access list verifier can be easily initialized.
+type NewChunkAccessListVerifier func(cal blocks.ROChunkAccessList) ChunkAccessListVerifier

@@ -1,6 +1,9 @@
 package blocks
 
-import ethpb "github.com/OffchainLabs/prysm/v6/proto/prysm/v1alpha1"
+import (
+	"github.com/OffchainLabs/prysm/v6/encoding/bytesutil"
+	ethpb "github.com/OffchainLabs/prysm/v6/proto/prysm/v1alpha1"
+)
 
 func signedBlockHeaderNilCheck(b *ethpb.SignedBeaconBlockHeader) error {
 	if b == nil || b.Header == nil {
@@ -37,8 +40,16 @@ func NewROExecutionChunk(c *ethpb.ExecutionChunkSidecar) (ROExecutionChunk, erro
 }
 
 // BlockRoot returns the root of the block.
-func (b *ROExecutionChunk) BlockRoot() [32]byte {
-	return b.root
+func (chunk *ROExecutionChunk) BlockRoot() [32]byte {
+	return chunk.root
+}
+
+func (chunk *ROExecutionChunk) BlockHeader() *ethpb.BeaconBlockHeader {
+	return chunk.SignedBlockHeader.Header
+}
+
+func (chunk *ROExecutionChunk) ParentRoot() [32]byte {
+	return bytesutil.ToBytes32(chunk.SignedBlockHeader.Header.ParentRoot)
 }
 
 // Read-only chunk access list sidecar
@@ -65,8 +76,16 @@ func NewROChunkAccessList(c *ethpb.ChunkAccessListSidecar) (ROChunkAccessList, e
 }
 
 // BlockRoot returns the root of the block.
-func (b *ROChunkAccessList) BlockRoot() [32]byte {
-	return b.root
+func (cal *ROChunkAccessList) BlockRoot() [32]byte {
+	return cal.root
+}
+
+func (cal *ROChunkAccessList) BlockHeader() *ethpb.BeaconBlockHeader {
+	return cal.SignedBlockHeader.Header
+}
+
+func (cal *ROChunkAccessList) ParentRoot() [32]byte {
+	return bytesutil.ToBytes32(cal.SignedBlockHeader.Header.ParentRoot)
 }
 
 // VerifiedROExecutionChunk represents an ROExecutionChunk that has undergone full verification (eg block sig, inclusion proof, commitment check).

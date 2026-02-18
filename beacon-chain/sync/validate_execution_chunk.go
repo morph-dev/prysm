@@ -6,6 +6,7 @@ import (
 	"github.com/OffchainLabs/prysm/v6/beacon-chain/p2p"
 	"github.com/OffchainLabs/prysm/v6/consensus-types/blocks"
 	"github.com/OffchainLabs/prysm/v6/consensus-types/primitives"
+	"github.com/OffchainLabs/prysm/v6/crypto/rand"
 	eth "github.com/OffchainLabs/prysm/v6/proto/prysm/v1alpha1"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
 	"github.com/libp2p/go-libp2p/core/peer"
@@ -44,10 +45,55 @@ func (s *Service) validateExecutionChunk(ctx context.Context, pid peer.ID, msg *
 		return pubsub.ValidationIgnore, nil
 	}
 
-	// TODO(EIP-8101): slot time?, signature, inclusion proof
+	v := s.newExecutionChunkVerifier(chunk)
 
-	msg.ValidatorData = blocks.NewVerifiedROExecutionChunk(chunk)
-	s.chunkCache.AddExecutionChunk(blockRoot, chunkIndex)
+	if err := v.NotFromFutureSlot(); err != nil {
+		return pubsub.ValidationIgnore, err
+	}
 
+	if err := v.SlotAboveFinalized(); err != nil {
+		return pubsub.ValidationIgnore, err
+	}
+
+	if err := v.SidecarParentSeen(s.hasBadBlock); err != nil {
+		go func() {
+			parentRoot := chunk.ParentRoot()
+			if err := s.sendBatchRootRequest(context.Background(), [][32]byte{parentRoot}, rand.NewGenerator()); err != nil {
+				log.WithError(err).Debug("Failed to send batch root request")
+			}
+		}()
+		return pubsub.ValidationIgnore, err
+	}
+
+	if err := v.SidecarParentValid(s.hasBadBlock); err != nil {
+		return pubsub.ValidationReject, err
+	}
+
+	if err := v.SidecarParentSlotLower(); err != nil {
+		return pubsub.ValidationReject, err
+	}
+
+	if err := v.SidecarDescendsFromFinalized(); err != nil {
+		return pubsub.ValidationReject, err
+	}
+
+	if err := v.SidecarProposerExpected(ctx); err != nil {
+		return pubsub.ValidationReject, err
+	}
+
+	if err := v.ValidProposerSignature(ctx); err != nil {
+		return pubsub.ValidationReject, err
+	}
+
+	if err := v.SidecarInclusionProven(); err != nil {
+		return pubsub.ValidationReject, err
+	}
+
+	vChunk, err := v.VerifiedROExecutionChunk()
+	if err != nil {
+		return pubsub.ValidationReject, err
+	}
+
+	msg.ValidatorData = vChunk
 	return pubsub.ValidationAccept, nil
 }

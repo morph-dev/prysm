@@ -184,6 +184,8 @@ type Service struct {
 	digestActions                    perDigestSet
 	subscriptionSpawner              func(func()) // see Service.spawn for details
 	chunkCache                       *cache.ChunkCache
+	newExecutionChunkVerifier        verification.NewExecutionChunkVerifier
+	newChunkAccessListVerifier       verification.NewChunkAccessListVerifier
 }
 
 // NewService initializes new regular sync service.
@@ -253,6 +255,18 @@ func newDataColumnsVerifierFromInitializer(ini *verification.Initializer) verifi
 	}
 }
 
+func newExecutionChunkVerifierFromInitializer(ini *verification.Initializer) verification.NewExecutionChunkVerifier {
+	return func(chunk blocks.ROExecutionChunk) verification.ExecutionChunkVerifier {
+		return ini.NewExecutionChunkVerifier(chunk)
+	}
+}
+
+func newChunkAccessListVerifierFromInitializer(ini *verification.Initializer) verification.NewChunkAccessListVerifier {
+	return func(cal blocks.ROChunkAccessList) verification.ChunkAccessListVerifier {
+		return ini.NewChunkAccessListVerifier(cal)
+	}
+}
+
 // Start the regular sync service.
 func (s *Service) Start() {
 	v, err := s.verifierWaiter.WaitForInitializer(s.ctx)
@@ -262,6 +276,8 @@ func (s *Service) Start() {
 	}
 	s.newBlobVerifier = newBlobVerifierFromInitializer(v)
 	s.newColumnsVerifier = newDataColumnsVerifierFromInitializer(v)
+	s.newExecutionChunkVerifier = newExecutionChunkVerifierFromInitializer(v)
+	s.newChunkAccessListVerifier = newChunkAccessListVerifierFromInitializer(v)
 
 	go s.verifierRoutine()
 	go s.kzgVerifierRoutine()

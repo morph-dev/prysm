@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/OffchainLabs/prysm/v6/beacon-chain/state/stateutil"
+	field_params "github.com/OffchainLabs/prysm/v6/config/fieldparams"
 	consensus_types "github.com/OffchainLabs/prysm/v6/consensus-types"
 	"github.com/OffchainLabs/prysm/v6/consensus-types/interfaces"
 	"github.com/OffchainLabs/prysm/v6/container/trie"
@@ -43,9 +44,12 @@ func (b *SignedBeaconBlock) SetChunks(chunkBundles enginev1.ExecutionChunksBundl
 // Inclusion Proofs
 
 const (
-	logMaxChunksPerBlock           = 8 // log2(field_params.MaxChunksPerBlock)
-	chunkHeadersRootFieldIndex     = 13
-	chunkAccessListsRootFieldIndex = 14
+	logMaxChunksPerBlock            = 8 // log2(field_params.MaxChunksPerBlock)
+	chunkHeadersRootFieldIndex      = 13
+	chunkAccessListsRootFieldIndex  = 14
+	inclusionProofOffsetMultiplier  = 512 // 1 ^ (logMaxChunksPerBlock + 1)
+	chunkHeaderInclusionProofOffset = chunkHeadersRootFieldIndex * inclusionProofOffsetMultiplier
+	chunkAccessListProofOffset      = chunkAccessListsRootFieldIndex * inclusionProofOffsetMultiplier
 )
 
 type ChunkProofComponents struct {
@@ -113,4 +117,58 @@ func (c *ChunkProofComponents) ChunkAccessListProof(chunkIndex int) ([][]byte, e
 	}
 	proof = append(proof, c.chunkAccessListsRootProof...)
 	return proof, nil
+}
+
+func VerifyExecutionChunkInclusionProof(c *ROExecutionChunk) error {
+	if c.SignedBlockHeader == nil {
+		return errNilBlockHeader
+	}
+	if c.SignedBlockHeader.Header == nil {
+		return errNilBlockHeader
+	}
+	root := c.SignedBlockHeader.Header.BodyRoot
+	if len(root) != field_params.RootLength {
+		return errInvalidBodyRoot
+	}
+
+	chunkRoot, err := c.Chunk.HashTreeRoot()
+	if err != nil {
+		return err
+	}
+
+	proofIndex := chunkHeaderInclusionProofOffset + c.Chunk.ChunkHeader.Index
+
+	verified := trie.VerifyMerkleProof(root, chunkRoot[:], proofIndex, c.InclusionProof)
+	if !verified {
+		return errInvalidInclusionProof
+	}
+
+	return nil
+}
+
+func VerifyChunkAccessListInclusionProof(c *ROChunkAccessList) error {
+	if c.SignedBlockHeader == nil {
+		return errNilBlockHeader
+	}
+	if c.SignedBlockHeader.Header == nil {
+		return errNilBlockHeader
+	}
+	root := c.SignedBlockHeader.Header.BodyRoot
+	if len(root) != field_params.RootLength {
+		return errInvalidBodyRoot
+	}
+
+	calRoot, err := stateutil.ChunkAccessListRoot(c.ChunkAccessList)
+	if err != nil {
+		return err
+	}
+
+	proofIndex := chunkAccessListProofOffset + c.ChunkIndex
+
+	verified := trie.VerifyMerkleProof(root, calRoot[:], proofIndex, c.InclusionProof)
+	if !verified {
+		return errInvalidInclusionProof
+	}
+
+	return nil
 }
