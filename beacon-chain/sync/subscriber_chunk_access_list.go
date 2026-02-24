@@ -15,7 +15,7 @@ func (s *Service) chunkAccessListSubscriber(ctx context.Context, msg proto.Messa
 		return fmt.Errorf("message was not type blocks.VerifiedROChunkAccessList, type=%T", msg)
 	}
 
-	s.chunkCache.AddExecutionChunk(cal.BlockRoot(), primitives.ChunkIndex(cal.ChunkIndex))
+	s.chunkCache.AddChunkAccessList(cal.BlockRoot(), primitives.ChunkIndex(cal.ChunkIndex))
 
 	s.cfg.chain.ReceiveChunkAccessList(ctx, cal)
 
